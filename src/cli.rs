@@ -6,7 +6,7 @@ use clap::{Parser, Subcommand};
     version,
     about = "Render markdown beautifully in the terminal",
     subcommand_help_heading = "Commands",
-    after_help = "Examples:\n  md README.md                          Render in terminal\n  md serve .                            Live preview in browser\n  md stats README.md                    Show word count & stats\n  md fmt --check README.md              Check formatting\n  md convert --to html README.md        Export to HTML\n  md publish ./blog --out ./dist        Generate static site"
+    after_help = "Examples:\n  md README.md                          Render in terminal\n  md serve .                            Live preview in browser\n  md stats README.md                    Show word count & stats\n  md fmt --check README.md              Check formatting\n  md export --to html README.md         Export to HTML\n  md export --to pdf README.md          Export to PDF\n  md publish ./blog --out ./dist        Generate static site"
 )]
 pub struct Args {
     #[command(subcommand)]
@@ -89,8 +89,8 @@ pub enum Command {
     /// Compare two markdown files with colored diff
     Diff(DiffArgs),
 
-    /// Convert markdown to another format
-    Convert(ConvertArgs),
+    /// Export markdown to another format (html, pdf, json, txt)
+    Export(ExportArgs),
 
     /// Generate a static site from a directory of markdown files
     Publish(PublishArgs),
@@ -182,15 +182,19 @@ pub struct DiffArgs {
 
 #[derive(clap::Args, Debug)]
 #[command(
-    after_help = "Examples:\n  md convert --to html README.md  Standalone HTML page\n  md convert --to json README.md  AST as JSON\n  md convert --to txt README.md   Plain text (strip formatting)"
+    after_help = "Examples:\n  md export --to html README.md          Standalone HTML page\n  md export --to pdf README.md           PDF document\n  md export --to pdf -o out.pdf file.md  PDF with custom output path\n  md export --to json README.md          AST as JSON\n  md export --to txt README.md           Plain text (strip formatting)"
 )]
-pub struct ConvertArgs {
+pub struct ExportArgs {
     /// Markdown file (reads stdin if omitted)
     pub file: Option<String>,
 
     /// Output format
-    #[arg(long, value_parser = ["html", "json", "txt"])]
+    #[arg(long, value_parser = ["html", "json", "txt", "pdf"])]
     pub to: String,
+
+    /// Output file path (for pdf: defaults to input filename with .pdf extension)
+    #[arg(short, long)]
+    pub output: Option<String>,
 }
 
 #[derive(clap::Args, Debug)]

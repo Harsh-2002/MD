@@ -30,9 +30,10 @@ md fmt --check file.md              # check formatting (for CI)
 md lint file.md                     # check for broken links, issues
 md diff old.md new.md               # colored side-by-side diff
 md diff -u old.md new.md            # unified diff
-md convert --to html file.md        # export to standalone HTML
-md convert --to json file.md        # export AST as JSON
-md convert --to txt file.md         # strip formatting to plain text
+md export --to html file.md         # export to standalone HTML
+md export --to pdf file.md          # export to PDF (no browser needed)
+md export --to json file.md         # export AST as JSON
+md export --to txt file.md          # strip formatting to plain text
 md toc file.md                      # print table of contents
 md present file.md                  # slide presentation in terminal
 md watch file.md                    # re-render on file changes
@@ -131,12 +132,13 @@ md diff -u old.md new.md        # unified
 md diff - new.md                # read first file from stdin
 ```
 
-### `md convert` — Format conversion
+### `md export` — Format conversion
 
 ```bash
-md convert --to html README.md  # standalone HTML page
-md convert --to json README.md  # AST as JSON (for tooling)
-md convert --to txt README.md   # plain text (strip formatting)
+md export --to html README.md   # standalone HTML page
+md export --to pdf README.md    # PDF document (native, no browser needed)
+md export --to json README.md   # AST as JSON (for tooling)
+md export --to txt README.md    # plain text (strip formatting)
 ```
 
 ### `md publish` — Static site generator
@@ -186,7 +188,7 @@ draft: true
 - **Formatter** — normalize markdown style with `md fmt`
 - **Linter** — check for broken links, duplicates, missing alt text
 - **Diff viewer** — colored side-by-side or unified diff
-- **Format conversion** — export to HTML, JSON AST, or plain text
+- **Format export** — export to HTML, PDF, JSON AST, or plain text
 - **Static site generator** — `md publish` builds a blog from markdown files
 - **Alerts** — GitHub-style note/tip/warning/caution blocks
 - **Footnotes, task lists, strikethrough, autolinks** — full GFM support
@@ -205,7 +207,7 @@ markdown file
      |
      ├──> HTML renderer ──> axum server ──> browser (live reload via SSE)
      |
-     └──> CLI tools (stats, fmt, lint, diff, convert, publish)
+     └──> CLI tools (stats, fmt, lint, diff, export, publish)
 ```
 
 ## Credits
@@ -224,6 +226,7 @@ Built on these libraries:
 | [notify](https://github.com/notify-rs/notify) | File system watcher |
 | [textwrap](https://github.com/mgeisler/textwrap) | Text wrapping |
 | [image](https://github.com/image-rs/image) | Image decoding |
+| [markdown2pdf](https://github.com/theiskaa/mdPdf) | Native PDF generation |
 
 ## License
 

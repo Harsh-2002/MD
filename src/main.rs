@@ -100,12 +100,13 @@ fn main() {
         return;
     }
 
-    if let Some(md::cli::Command::Convert(ref convert_args)) = args.command {
-        let ca = md::convert::ConvertArgs {
-            file: convert_args.file.clone(),
-            to: convert_args.to.clone(),
+    if let Some(md::cli::Command::Export(ref export_args)) = args.command {
+        let ea = md::export::ExportArgs {
+            file: export_args.file.clone(),
+            to: export_args.to.clone(),
+            output: export_args.output.clone(),
         };
-        md::convert::run(&ca).unwrap_or_else(|e| {
+        md::export::run(&ea).unwrap_or_else(|e| {
             eprintln!("Error: {}", e);
             std::process::exit(1);
         });
@@ -288,97 +289,18 @@ fn export(markdown: &str, output_path: &str, title: &str, args: &Args) {
         });
         eprintln!("  Wrote {}", output_path);
     } else if output_path.ends_with(".pdf") {
-        export_pdf(&html, output_path);
+        export_pdf(markdown, &html, output_path);
     } else {
         eprintln!("Unsupported output format. Use .html or .pdf");
         std::process::exit(1);
     }
 }
 
-fn export_pdf(html: &str, output_path: &str) {
-    // Write temp HTML file
-    let tmp_dir = std::env::temp_dir();
-    let tmp_html = tmp_dir.join("md-export-tmp.html");
-    std::fs::write(&tmp_html, html).unwrap_or_else(|e| {
-        eprintln!("Error writing temp file: {}", e);
+fn export_pdf(markdown: &str, _html: &str, output_path: &str) {
+    md::export::export_pdf(markdown, output_path).unwrap_or_else(|e| {
+        eprintln!("Error generating PDF: {}", e);
         std::process::exit(1);
     });
-
-    let tmp_html_str = tmp_html.to_string_lossy().to_string();
-    let file_url = format!("file://{}", tmp_html_str);
-
-    // Try Chrome headless (check common paths)
-    let chrome_paths = if cfg!(target_os = "macos") {
-        vec![
-            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-            "/Applications/Chromium.app/Contents/MacOS/Chromium",
-            "google-chrome",
-            "chromium",
-        ]
-    } else {
-        vec![
-            "google-chrome",
-            "google-chrome-stable",
-            "chromium",
-            "chromium-browser",
-        ]
-    };
-
-    for chrome in &chrome_paths {
-        let result = Command::new(chrome)
-            .args([
-                "--headless",
-                "--disable-gpu",
-                &format!("--print-to-pdf={}", output_path),
-                &file_url,
-            ])
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status();
-
-        if let Ok(status) = result
-            && status.success()
-        {
-            let _ = std::fs::remove_file(&tmp_html);
-            eprintln!("  Wrote {} (via Chrome)", output_path);
-            return;
-        }
-    }
-
-    // Try wkhtmltopdf
-    let result = Command::new("wkhtmltopdf")
-        .args(["--quiet", &tmp_html_str, output_path])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status();
-
-    if let Ok(status) = result
-        && status.success()
-    {
-        let _ = std::fs::remove_file(&tmp_html);
-        eprintln!("  Wrote {} (via wkhtmltopdf)", output_path);
-        return;
-    }
-
-    // Try weasyprint
-    let result = Command::new("weasyprint")
-        .args([&tmp_html_str, output_path])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status();
-
-    if let Ok(status) = result
-        && status.success()
-    {
-        let _ = std::fs::remove_file(&tmp_html);
-        eprintln!("  Wrote {} (via weasyprint)", output_path);
-        return;
-    }
-
-    let _ = std::fs::remove_file(&tmp_html);
-    eprintln!("Error: No PDF tool found.");
-    eprintln!("  Install one of: Chrome, wkhtmltopdf, or weasyprint");
-    std::process::exit(1);
 }
 
 fn render_with_pager<'a>(
