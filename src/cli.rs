@@ -94,6 +94,10 @@ pub enum Command {
 
     /// Generate a static site from a directory of markdown files
     Publish(PublishArgs),
+
+    /// Update md to the latest version
+    #[cfg(feature = "url")]
+    Update,
 }
 
 #[cfg(feature = "serve")]

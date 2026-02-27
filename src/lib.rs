@@ -16,5 +16,7 @@ pub mod style;
 pub mod terminal;
 pub mod text;
 pub mod toc;
+#[cfg(feature = "url")]
+pub mod update;
 #[cfg(feature = "watch")]
 pub mod watch;

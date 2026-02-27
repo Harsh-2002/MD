@@ -1,6 +1,6 @@
 [package]
 name = "md"
-version = "2.0.0"
+version = "3.0.0"
 edition = "2024"
 description = "A terminal markdown renderer with colors, formatting, and diagram support"
 license = "MIT"

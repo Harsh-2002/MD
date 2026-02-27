@@ -113,6 +113,15 @@ fn main() {
         return;
     }
 
+    #[cfg(feature = "url")]
+    if let Some(md::cli::Command::Update) = args.command {
+        md::update::run().unwrap_or_else(|e| {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+        });
+        return;
+    }
+
     if let Some(md::cli::Command::Publish(ref publish_args)) = args.command {
         let pa = md::publish::PublishArgs {
             dir: publish_args.dir.clone(),
