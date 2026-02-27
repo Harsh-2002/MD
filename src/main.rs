@@ -11,6 +11,10 @@ use md::style::theme::Theme;
 use md::terminal::TerminalInfo;
 
 fn main() {
+    // Clean up leftover md.old.exe from a previous self-update on Windows
+    #[cfg(all(windows, feature = "url"))]
+    md::update::cleanup_old_binary();
+
     let args = Args::parse();
 
     // Handle subcommands

@@ -4,13 +4,21 @@ A fast terminal markdown renderer and toolchain built in Rust. Renders markdown 
 
 ## Install
 
+**macOS / Linux:**
+
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Harsh-2002/MD/main/install.sh | sh
 ```
 
-Installs the binary to `/usr/local/bin` and sets up shell completions automatically (bash, zsh, fish).
+**Windows (PowerShell):**
 
-**From source:**
+```powershell
+irm https://raw.githubusercontent.com/Harsh-2002/MD/main/install.ps1 | iex
+```
+
+Installs the binary and sets up shell completions automatically.
+
+**From source (all platforms):**
 
 ```bash
 cargo install --git https://github.com/Harsh-2002/MD --features serve

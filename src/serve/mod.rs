@@ -647,21 +647,32 @@ async fn sse_handler(
     Sse::new(stream).keep_alive(KeepAlive::default())
 }
 
-/// Spawn a background task that exits the process on SIGINT or SIGTERM.
+/// Spawn a background task that exits the process on shutdown signal.
 /// This bypasses axum's graceful shutdown (which blocks on active SSE
 /// connections) and also kills any watcher threads that would otherwise
 /// keep the process alive.
 fn spawn_shutdown_handler() {
     tokio::spawn(async {
-        use tokio::signal::unix::{SignalKind, signal};
+        #[cfg(unix)]
+        {
+            use tokio::signal::unix::{SignalKind, signal};
 
-        let mut sigint = signal(SignalKind::interrupt()).expect("Failed to install SIGINT handler");
-        let mut sigterm =
-            signal(SignalKind::terminate()).expect("Failed to install SIGTERM handler");
+            let mut sigint =
+                signal(SignalKind::interrupt()).expect("Failed to install SIGINT handler");
+            let mut sigterm =
+                signal(SignalKind::terminate()).expect("Failed to install SIGTERM handler");
 
-        tokio::select! {
-            _ = sigint.recv() => {}
-            _ = sigterm.recv() => {}
+            tokio::select! {
+                _ = sigint.recv() => {}
+                _ = sigterm.recv() => {}
+            }
+        }
+
+        #[cfg(windows)]
+        {
+            tokio::signal::ctrl_c()
+                .await
+                .expect("Failed to install Ctrl+C handler");
         }
 
         eprintln!("\n  Stopped.");

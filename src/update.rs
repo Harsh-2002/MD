@@ -1,8 +1,10 @@
 use std::fs;
 use std::io::Write;
-use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::Command;
+
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const API_URL: &str = "https://api.github.com/repos/Harsh-2002/MD/releases/latest";
@@ -81,11 +83,20 @@ fn detect_target() -> Result<&'static str, Box<dyn std::error::Error>> {
     match (os, arch) {
         ("macos", "aarch64") => Ok("aarch64-apple-darwin"),
         ("macos", "x86_64") => Ok("x86_64-apple-darwin"),
+        #[cfg(target_env = "musl")]
+        ("linux", "aarch64") => Ok("aarch64-unknown-linux-musl"),
+        #[cfg(not(target_env = "musl"))]
         ("linux", "aarch64") => Ok("aarch64-unknown-linux-gnu"),
+        #[cfg(target_env = "musl")]
+        ("linux", "x86_64") => Ok("x86_64-unknown-linux-musl"),
+        #[cfg(not(target_env = "musl"))]
         ("linux", "x86_64") => Ok("x86_64-unknown-linux-gnu"),
+        ("linux", "arm") => Ok("armv7-unknown-linux-gnueabihf"),
+        ("windows", "x86_64") => Ok("x86_64-pc-windows-msvc"),
+        ("windows", "aarch64") => Ok("aarch64-pc-windows-msvc"),
         _ => Err(format!(
             "Unsupported platform: {}/{}. Pre-built binaries available for: \
-             linux (x86_64, aarch64), macOS (x86_64, aarch64)",
+             linux (x86_64, aarch64, armv7), macOS (x86_64, aarch64), Windows (x86_64, aarch64)",
             os, arch
         )
         .into()),
@@ -122,9 +133,14 @@ fn download_and_install(
         return Err("Failed to extract update archive".into());
     }
 
-    let new_binary = temp_dir.join("md");
+    let binary_name = format!("md{}", std::env::consts::EXE_SUFFIX);
+    let new_binary = temp_dir.join(&binary_name);
     if !new_binary.exists() {
-        return Err("Downloaded archive does not contain 'md' binary".into());
+        return Err(format!(
+            "Downloaded archive does not contain '{}' binary",
+            binary_name
+        )
+        .into());
     }
 
     // Pre-verify the new binary
@@ -137,36 +153,93 @@ fn download_and_install(
         return Err("Downloaded binary is invalid (--version check failed)".into());
     }
 
-    // Phase 3: Atomic binary replacement
+    // Phase 3: Binary replacement
     let current_exe = std::env::current_exe()?;
     let exe_path = fs::canonicalize(&current_exe)?;
     let exe_dir = exe_path
         .parent()
         .ok_or("Could not determine binary directory")?;
 
-    let staging_path = exe_dir.join("md.update.tmp");
+    let staging_path = exe_dir.join(format!("md.update.tmp{}", std::env::consts::EXE_SUFFIX));
 
     // Copy new binary to staging location (same filesystem for atomic rename)
     fs::copy(&new_binary, &staging_path).map_err(|e| {
         if e.kind() == std::io::ErrorKind::PermissionDenied {
-            format!(
-                "Permission denied writing to {}. Try: sudo md update",
-                exe_dir.display()
-            )
+            #[cfg(unix)]
+            {
+                format!(
+                    "Permission denied writing to {}. Try: sudo md update",
+                    exe_dir.display()
+                )
+            }
+            #[cfg(windows)]
+            {
+                format!(
+                    "Permission denied writing to {}. Try running as Administrator",
+                    exe_dir.display()
+                )
+            }
+            #[cfg(not(any(unix, windows)))]
+            {
+                format!("Permission denied writing to {}", exe_dir.display())
+            }
         } else {
             format!("Failed to stage update: {}", e)
         }
     })?;
 
-    // Set executable permissions
-    fs::set_permissions(&staging_path, fs::Permissions::from_mode(0o755))?;
+    #[cfg(unix)]
+    {
+        // Set executable permissions
+        fs::set_permissions(&staging_path, fs::Permissions::from_mode(0o755))?;
 
-    // Atomic swap
-    if let Err(e) = fs::rename(&staging_path, &exe_path) {
-        // Clean up staging file on failure
-        let _ = fs::remove_file(&staging_path);
-        return Err(format!("Failed to replace binary: {}", e).into());
+        // Atomic swap
+        if let Err(e) = fs::rename(&staging_path, &exe_path) {
+            let _ = fs::remove_file(&staging_path);
+            return Err(format!("Failed to replace binary: {}", e).into());
+        }
+    }
+
+    #[cfg(windows)]
+    {
+        // Windows locks running executables, but allows renaming them.
+        // Rename the running exe out of the way, then move the new one in.
+        let old_path = exe_dir.join("md.old.exe");
+
+        // Clean up any leftover from a previous update
+        let _ = fs::remove_file(&old_path);
+
+        // Rename running binary: md.exe -> md.old.exe
+        if let Err(e) = fs::rename(&exe_path, &old_path) {
+            let _ = fs::remove_file(&staging_path);
+            return Err(format!("Failed to rename running binary: {}", e).into());
+        }
+
+        // Move staged binary into place: md.update.tmp.exe -> md.exe
+        if let Err(e) = fs::rename(&staging_path, &exe_path) {
+            // Try to restore the old binary
+            let _ = fs::rename(&old_path, &exe_path);
+            return Err(format!("Failed to install new binary: {}", e).into());
+        }
+
+        // Try to delete the old binary (may fail if still locked — that's OK,
+        // cleanup_old_binary() will get it on next launch)
+        let _ = fs::remove_file(&old_path);
     }
 
     Ok(())
+}
+
+/// Clean up leftover `md.old.exe` from a previous update.
+/// Called at startup from main(). Best-effort — silently ignores errors.
+#[cfg(windows)]
+pub fn cleanup_old_binary() {
+    if let Ok(current_exe) = std::env::current_exe() {
+        if let Some(exe_dir) = current_exe.parent() {
+            let old = exe_dir.join("md.old.exe");
+            if old.exists() {
+                let _ = fs::remove_file(&old);
+            }
+        }
+    }
 }

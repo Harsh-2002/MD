@@ -67,19 +67,32 @@ detect_platform() {
     os=$(uname -s)
     arch=$(uname -m)
 
-    case "$os" in
-        Linux)  os="unknown-linux-gnu" ;;
-        Darwin) os="apple-darwin" ;;
-        *) echo "Unsupported OS: $os" >&2; exit 1 ;;
-    esac
-
     case "$arch" in
         x86_64|amd64)  arch="x86_64" ;;
         aarch64|arm64) arch="aarch64" ;;
+        armv7*)
+            echo "armv7-unknown-linux-gnueabihf"
+            return
+            ;;
         *) echo "Unsupported architecture: $arch" >&2; exit 1 ;;
     esac
 
-    echo "${arch}-${os}"
+    case "$os" in
+        Linux)
+            if ldd --version 2>&1 | grep -qi musl; then
+                echo "${arch}-unknown-linux-musl"
+            else
+                echo "${arch}-unknown-linux-gnu"
+            fi
+            ;;
+        Darwin)
+            echo "${arch}-apple-darwin"
+            ;;
+        *)
+            echo "Unsupported OS: $os" >&2
+            exit 1
+            ;;
+    esac
 }
 
 get_latest_version() {
