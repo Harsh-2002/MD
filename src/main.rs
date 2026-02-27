@@ -11,7 +11,7 @@ use md::style::theme::Theme;
 use md::terminal::TerminalInfo;
 
 fn main() {
-    // Clean up leftover md.old.exe from a previous self-update on Windows
+    // Clean up leftover mdx.old.exe from a previous self-update on Windows
     #[cfg(all(windows, feature = "url"))]
     md::update::cleanup_old_binary();
 
@@ -141,8 +141,8 @@ fn main() {
     #[cfg(not(any(feature = "serve", feature = "watch")))]
     if args.command.is_some() {
         eprintln!("Subcommand not available. Rebuild with appropriate features:");
-        eprintln!("  cargo install md --features serve");
-        eprintln!("  cargo install md --features watch");
+        eprintln!("  cargo install mdx --features serve");
+        eprintln!("  cargo install mdx --features watch");
         std::process::exit(1);
     }
 
@@ -160,7 +160,7 @@ fn main() {
     // Handle --completions
     if let Some(shell) = args.completions {
         let mut cmd = <Args as clap::CommandFactory>::command();
-        clap_complete::generate(shell, &mut cmd, "md", &mut io::stdout());
+        clap_complete::generate(shell, &mut cmd, "mdx", &mut io::stdout());
         return;
     }
 
@@ -195,7 +195,7 @@ fn main() {
             #[cfg(not(feature = "url"))]
             {
                 eprintln!(
-                    "URL fetching not available. Rebuild with: cargo install md --features url"
+                    "URL fetching not available. Rebuild with: cargo install mdx --features url"
                 );
                 std::process::exit(1);
             }
@@ -210,7 +210,7 @@ fn main() {
         None => {
             // Check if stdin is a terminal (no input piped)
             if std::io::stdin().is_terminal() {
-                eprintln!("Usage: md [FILE]");
+                eprintln!("Usage: mdx [FILE]");
                 eprintln!("  Reads from stdin if no file is given.");
                 std::process::exit(1);
             }

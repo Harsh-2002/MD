@@ -1,5 +1,5 @@
 #!/bin/bash
 set -e
 cargo build --release --features serve
-cp target/release/md ./md
-echo "Done: ./md"
+cp target/release/mdx ./mdx
+echo "Done: ./mdx"

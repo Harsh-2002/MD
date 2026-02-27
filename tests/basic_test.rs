@@ -3,25 +3,25 @@ use std::process::Command;
 // ── Helpers ──────────────────────────────────────────────────────────
 
 fn run_md(args: &[&str], input_file: &str) -> String {
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .args(args)
         .arg(input_file)
         .env("NO_COLOR", "1")
         .output()
-        .expect("Failed to execute md");
+        .expect("Failed to execute mdx");
     String::from_utf8_lossy(&output.stdout).to_string()
 }
 
 fn run_md_stdin(args: &[&str], input: &str) -> String {
     use std::io::Write;
-    let mut child = Command::new(env!("CARGO_BIN_EXE_md"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .args(args)
         .env("NO_COLOR", "1")
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .expect("Failed to start md");
+        .expect("Failed to start mdx");
     child
         .stdin
         .take()
@@ -34,13 +34,13 @@ fn run_md_stdin(args: &[&str], input: &str) -> String {
 
 fn run_md_raw(args: &[&str], input: &[u8]) -> std::process::Output {
     use std::io::Write;
-    let mut child = Command::new(env!("CARGO_BIN_EXE_md"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .args(args)
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()
-        .expect("Failed to start md");
+        .expect("Failed to start mdx");
     child.stdin.take().unwrap().write_all(input).unwrap();
     child.wait_with_output().unwrap()
 }
@@ -943,10 +943,10 @@ fn test_wide_width() {
 
 #[test]
 fn test_list_syntax_themes() {
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .arg("--list-syntax-themes")
         .output()
-        .expect("Failed to execute md");
+        .expect("Failed to execute mdx");
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
         stdout.contains("base16-ocean.dark"),
@@ -969,10 +969,10 @@ fn test_syntax_theme_flag() {
 
 #[test]
 fn test_generate_man() {
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .arg("--generate-man")
         .output()
-        .expect("Failed to execute md");
+        .expect("Failed to execute mdx");
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
@@ -983,10 +983,10 @@ fn test_generate_man() {
 
 #[test]
 fn test_completions_bash() {
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .arg("--completions=bash")
         .output()
-        .expect("Failed to execute md");
+        .expect("Failed to execute mdx");
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
@@ -997,10 +997,10 @@ fn test_completions_bash() {
 
 #[test]
 fn test_completions_zsh() {
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .arg("--completions=zsh")
         .output()
-        .expect("Failed to execute md");
+        .expect("Failed to execute mdx");
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
@@ -1011,14 +1011,14 @@ fn test_completions_zsh() {
 
 #[test]
 fn test_completions_fish() {
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .arg("--completions=fish")
         .output()
-        .expect("Failed to execute md");
+        .expect("Failed to execute mdx");
     assert!(output.status.success());
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
-        stdout.contains("complete") || stdout.contains("md"),
+        stdout.contains("complete") || stdout.contains("mdx"),
         "Fish completions should be generated"
     );
 }
@@ -1045,11 +1045,11 @@ fn test_file_input() {
 
 #[test]
 fn test_nonexistent_file() {
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .args(["-w", "80", "/tmp/md-nonexistent-file-12345.md"])
         .env("NO_COLOR", "1")
         .output()
-        .expect("Failed to execute md");
+        .expect("Failed to execute mdx");
     assert!(
         !output.status.success(),
         "Non-existent file should return error exit code"
@@ -1058,11 +1058,11 @@ fn test_nonexistent_file() {
 
 #[test]
 fn test_url_detection() {
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .args(["-w", "80", "http://127.0.0.1:1/nonexistent.md"])
         .env("NO_COLOR", "1")
         .output()
-        .expect("Failed to execute md");
+        .expect("Failed to execute mdx");
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
         stderr.contains("Fetching") || stderr.contains("Error fetching"),
@@ -1079,7 +1079,7 @@ fn test_toc_output() {
         "md-test-toc.md",
         "# Installation\n\n## Terminal Mode\n\n## Serve Mode\n\n### Advanced\n",
     );
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .args(["toc"])
         .arg(&tmp)
         .output()
@@ -1099,7 +1099,7 @@ fn test_toc_depth_limit() {
         "md-test-toc-depth.md",
         "# H1\n\n## H2\n\n### H3\n\n#### H4\n",
     );
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .args(["toc", "--depth", "2"])
         .arg(&tmp)
         .output()
@@ -1119,7 +1119,7 @@ fn test_toc_slug_generation() {
         "md-test-toc-slug.md",
         "## Hello World\n\n## Special & Characters!\n",
     );
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .args(["toc"])
         .arg(&tmp)
         .output()
@@ -1138,12 +1138,12 @@ fn test_toc_slug_generation() {
 fn test_html_output() {
     let tmp = write_tmp("md-test-html.md", "# Hello\n\nWorld");
     let out_path = std::env::temp_dir().join("md-test-output.html");
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .args(["-o"])
         .arg(&out_path)
         .arg(&tmp)
         .output()
-        .expect("Failed to execute md");
+        .expect("Failed to execute mdx");
     assert!(output.status.success(), "HTML export should succeed");
     let html = std::fs::read_to_string(&out_path).expect("HTML file should exist");
     assert!(html.contains("<!DOCTYPE html>"), "Should be valid HTML");
@@ -1160,12 +1160,12 @@ fn test_html_output_contains_structure() {
         "# Title\n\n```rust\nlet x = 1;\n```",
     );
     let out_path = std::env::temp_dir().join("md-test-structure.html");
-    let output = Command::new(env!("CARGO_BIN_EXE_md"))
+    let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .args(["-o"])
         .arg(&out_path)
         .arg(&tmp)
         .output()
-        .expect("Failed to execute md");
+        .expect("Failed to execute mdx");
     assert!(output.status.success());
     let html = std::fs::read_to_string(&out_path).expect("HTML file should exist");
     assert!(html.contains("<article"), "Should have article element");
@@ -1319,12 +1319,12 @@ fn test_fixture_files_no_crash() {
         let entry = entry.unwrap();
         let path = entry.path();
         if path.extension().is_some_and(|e| e == "md") {
-            let output = Command::new(env!("CARGO_BIN_EXE_md"))
+            let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
                 .args(["-w", "80"])
                 .arg(&path)
                 .env("NO_COLOR", "1")
                 .output()
-                .expect("Failed to execute md");
+                .expect("Failed to execute mdx");
             assert!(
                 output.status.success(),
                 "Failed to render {:?}: {}",
@@ -1342,12 +1342,12 @@ fn test_fixture_files_plain_mode() {
         let entry = entry.unwrap();
         let path = entry.path();
         if path.extension().is_some_and(|e| e == "md") {
-            let output = Command::new(env!("CARGO_BIN_EXE_md"))
+            let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
                 .args(["-w", "80", "--plain"])
                 .arg(&path)
                 .env("NO_COLOR", "1")
                 .output()
-                .expect("Failed to execute md");
+                .expect("Failed to execute mdx");
             assert!(
                 output.status.success(),
                 "Failed to render {:?} in plain mode: {}",
@@ -1371,11 +1371,11 @@ fn test_fixture_files_color_mode() {
         let entry = entry.unwrap();
         let path = entry.path();
         if path.extension().is_some_and(|e| e == "md") {
-            let output = Command::new(env!("CARGO_BIN_EXE_md"))
+            let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
                 .args(["--color", "always", "-w", "80"])
                 .arg(&path)
                 .output()
-                .expect("Failed to execute md");
+                .expect("Failed to execute mdx");
             assert!(
                 output.status.success(),
                 "Failed to render {:?} in color mode: {}",
@@ -1393,12 +1393,12 @@ fn test_fixture_files_narrow_width() {
         let entry = entry.unwrap();
         let path = entry.path();
         if path.extension().is_some_and(|e| e == "md") {
-            let output = Command::new(env!("CARGO_BIN_EXE_md"))
+            let output = Command::new(env!("CARGO_BIN_EXE_mdx"))
                 .args(["-w", "20"])
                 .arg(&path)
                 .env("NO_COLOR", "1")
                 .output()
-                .expect("Failed to execute md");
+                .expect("Failed to execute mdx");
             assert!(
                 output.status.success(),
                 "Failed to render {:?} at width 20: {}",

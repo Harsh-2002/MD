@@ -27,9 +27,9 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     // Phase 2: Download and verify
     let target = detect_target()?;
-    let url = format!("{}/{}/md-{}.tar.gz", DOWNLOAD_BASE, tag, target);
+    let url = format!("{}/{}/mdx-{}.tar.gz", DOWNLOAD_BASE, tag, target);
 
-    let temp_dir = std::env::temp_dir().join(format!("md-update-{}", std::process::id()));
+    let temp_dir = std::env::temp_dir().join(format!("mdx-update-{}", std::process::id()));
     fs::create_dir_all(&temp_dir)?;
 
     // Ensure cleanup on all exit paths
@@ -40,14 +40,14 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     result?;
 
-    println!("  Updated md: v{} → v{}", CURRENT_VERSION, latest);
+    println!("  Updated mdx: v{} → v{}", CURRENT_VERSION, latest);
     Ok(())
 }
 
 fn fetch_latest_tag() -> Result<String, Box<dyn std::error::Error>> {
     eprintln!("  Checking for updates...");
     let resp = ureq::get(API_URL)
-        .header("User-Agent", "md-cli")
+        .header("User-Agent", "mdx-cli")
         .call()
         .map_err(|e| format!("Failed to check for updates: {}", e))?;
 
@@ -111,11 +111,11 @@ fn download_and_install(
     // Download tarball
     eprintln!("  Downloading {}...", tag);
     let resp = ureq::get(url)
-        .header("User-Agent", "md-cli")
+        .header("User-Agent", "mdx-cli")
         .call()
         .map_err(|e| format!("Failed to download release: {}", e))?;
 
-    let tarball_path = temp_dir.join("md.tar.gz");
+    let tarball_path = temp_dir.join("mdx.tar.gz");
     let mut body = resp.into_body();
     let mut file = fs::File::create(&tarball_path)?;
     std::io::copy(&mut body.as_reader(), &mut file)?;
@@ -133,7 +133,7 @@ fn download_and_install(
         return Err("Failed to extract update archive".into());
     }
 
-    let binary_name = format!("md{}", std::env::consts::EXE_SUFFIX);
+    let binary_name = format!("mdx{}", std::env::consts::EXE_SUFFIX);
     let new_binary = temp_dir.join(&binary_name);
     if !new_binary.exists() {
         return Err(format!(
@@ -160,7 +160,7 @@ fn download_and_install(
         .parent()
         .ok_or("Could not determine binary directory")?;
 
-    let staging_path = exe_dir.join(format!("md.update.tmp{}", std::env::consts::EXE_SUFFIX));
+    let staging_path = exe_dir.join(format!("mdx.update.tmp{}", std::env::consts::EXE_SUFFIX));
 
     // Copy new binary to staging location (same filesystem for atomic rename)
     fs::copy(&new_binary, &staging_path).map_err(|e| {
@@ -168,7 +168,7 @@ fn download_and_install(
             #[cfg(unix)]
             {
                 format!(
-                    "Permission denied writing to {}. Try: sudo md update",
+                    "Permission denied writing to {}. Try: sudo mdx update",
                     exe_dir.display()
                 )
             }
@@ -204,18 +204,18 @@ fn download_and_install(
     {
         // Windows locks running executables, but allows renaming them.
         // Rename the running exe out of the way, then move the new one in.
-        let old_path = exe_dir.join("md.old.exe");
+        let old_path = exe_dir.join("mdx.old.exe");
 
         // Clean up any leftover from a previous update
         let _ = fs::remove_file(&old_path);
 
-        // Rename running binary: md.exe -> md.old.exe
+        // Rename running binary: mdx.exe -> mdx.old.exe
         if let Err(e) = fs::rename(&exe_path, &old_path) {
             let _ = fs::remove_file(&staging_path);
             return Err(format!("Failed to rename running binary: {}", e).into());
         }
 
-        // Move staged binary into place: md.update.tmp.exe -> md.exe
+        // Move staged binary into place: mdx.update.tmp.exe -> mdx.exe
         if let Err(e) = fs::rename(&staging_path, &exe_path) {
             // Try to restore the old binary
             let _ = fs::rename(&old_path, &exe_path);
@@ -230,13 +230,13 @@ fn download_and_install(
     Ok(())
 }
 
-/// Clean up leftover `md.old.exe` from a previous update.
+/// Clean up leftover `mdx.old.exe` from a previous update.
 /// Called at startup from main(). Best-effort — silently ignores errors.
 #[cfg(windows)]
 pub fn cleanup_old_binary() {
     if let Ok(current_exe) = std::env::current_exe() {
         if let Some(exe_dir) = current_exe.parent() {
-            let old = exe_dir.join("md.old.exe");
+            let old = exe_dir.join("mdx.old.exe");
             if old.exists() {
                 let _ = fs::remove_file(&old);
             }

@@ -1,4 +1,4 @@
-# md
+# mdx
 
 A fast terminal markdown renderer and toolchain built in Rust. Renders markdown with syntax highlighting, tables, math, mermaid diagrams, and images — directly in your terminal. Also includes a browser preview with live reload, a markdown formatter, linter, diff viewer, format converter, and static site generator.
 
@@ -27,27 +27,27 @@ cargo install --git https://github.com/Harsh-2002/MD --features serve
 ## Usage
 
 ```bash
-md file.md                          # render in terminal
-md file.md --pager                  # render and pipe through less
-md serve file.md                    # browser preview with live reload
-md serve ./notes/                   # serve a directory as a note-taking app
-md serve a.md b.md                  # serve multiple files with index page
-md stats file.md                    # show word count, headings, reading time
-md fmt file.md                      # format/prettify markdown
-md fmt --check file.md              # check formatting (for CI)
-md lint file.md                     # check for broken links, issues
-md diff old.md new.md               # colored side-by-side diff
-md diff -u old.md new.md            # unified diff
-md export --to html file.md         # export to standalone HTML
-md export --to pdf file.md          # export to PDF (no browser needed)
-md export --to json file.md         # export AST as JSON
-md export --to txt file.md          # strip formatting to plain text
-md toc file.md                      # print table of contents
-md present file.md                  # slide presentation in terminal
-md watch file.md                    # re-render on file changes
-md publish ./blog --out ./dist      # generate a static site
-cat README.md | md                  # read from stdin
-md https://example.com/doc.md       # render from URL
+mdx file.md                          # render in terminal
+mdx file.md --pager                  # render and pipe through less
+mdx serve file.md                    # browser preview with live reload
+mdx serve ./notes/                   # serve a directory as a note-taking app
+mdx serve a.md b.md                  # serve multiple files with index page
+mdx stats file.md                    # show word count, headings, reading time
+mdx fmt file.md                      # format/prettify markdown
+mdx fmt --check file.md              # check formatting (for CI)
+mdx lint file.md                     # check for broken links, issues
+mdx diff old.md new.md               # colored side-by-side diff
+mdx diff -u old.md new.md            # unified diff
+mdx export --to html file.md         # export to standalone HTML
+mdx export --to pdf file.md          # export to PDF (no browser needed)
+mdx export --to json file.md         # export AST as JSON
+mdx export --to txt file.md          # strip formatting to plain text
+mdx toc file.md                      # print table of contents
+mdx present file.md                  # slide presentation in terminal
+mdx watch file.md                    # re-render on file changes
+mdx publish ./blog --out ./dist      # generate a static site
+cat README.md | mdx                  # read from stdin
+mdx https://example.com/doc.md       # render from URL
 ```
 
 ## Options
@@ -67,13 +67,13 @@ md https://example.com/doc.md       # render from URL
 
 ## Serve Mode
 
-`md serve` turns your markdown into a live browser preview. It supports three modes:
+`mdx serve` turns your markdown into a live browser preview. It supports three modes:
 
-**Single file** — `md serve file.md` opens the file with live reload. Edit in your favorite editor and the browser updates instantly.
+**Single file** — `mdx serve file.md` opens the file with live reload. Edit in your favorite editor and the browser updates instantly.
 
-**Directory** — `md serve ./notes/` shows all `.md` files as a card grid. Click any card to view it. Click the "+" card to create a new note directly from the browser.
+**Directory** — `mdx serve ./notes/` shows all `.md` files as a card grid. Click any card to view it. Click the "+" card to create a new note directly from the browser.
 
-**Multiple files** — `md serve a.md b.md c.md` serves the listed files with a sidebar for navigation and a search filter.
+**Multiple files** — `mdx serve a.md b.md c.md` serves the listed files with a sidebar for navigation and a search filter.
 
 All modes include:
 - Built-in markdown editor (toggle with pencil icon or `e`)
@@ -94,10 +94,10 @@ All modes include:
 
 ## CLI Tools
 
-### `md stats` — Document statistics
+### `mdx stats` — Document statistics
 
 ```
-$ md stats README.md
+$ mdx stats README.md
      Words: 1,247
      Lines: 89
      Chars: 7,832
@@ -108,53 +108,53 @@ Code blocks: 3
   Reading time: ~5 min
 ```
 
-### `md fmt` — Markdown formatter
+### `mdx fmt` — Markdown formatter
 
 Normalizes markdown formatting. Use `--check` in CI to ensure consistent style.
 
 ```bash
-md fmt README.md                # print formatted to stdout
-md fmt --in-place README.md     # overwrite the file
-md fmt --check README.md        # exit 1 if not formatted
+mdx fmt README.md                # print formatted to stdout
+mdx fmt --in-place README.md     # overwrite the file
+mdx fmt --check README.md        # exit 1 if not formatted
 ```
 
-### `md lint` — Markdown linter
+### `mdx lint` — Markdown linter
 
 Checks for broken relative links, duplicate headings, missing image alt text, and trailing whitespace.
 
 ```
-$ md lint README.md
+$ mdx lint README.md
   README.md:12 broken link: ./missing.md
   README.md:34 image missing alt text
   README.md:45 duplicate heading: "Setup"
   3 issues found
 ```
 
-### `md diff` — Markdown diff
+### `mdx diff` — Markdown diff
 
 Colored side-by-side or unified diff of two markdown files.
 
 ```bash
-md diff old.md new.md           # side-by-side
-md diff -u old.md new.md        # unified
-md diff - new.md                # read first file from stdin
+mdx diff old.md new.md           # side-by-side
+mdx diff -u old.md new.md        # unified
+mdx diff - new.md                # read first file from stdin
 ```
 
-### `md export` — Format conversion
+### `mdx export` — Format conversion
 
 ```bash
-md export --to html README.md   # standalone HTML page
-md export --to pdf README.md    # PDF document (native, no browser needed)
-md export --to json README.md   # AST as JSON (for tooling)
-md export --to txt README.md    # plain text (strip formatting)
+mdx export --to html README.md   # standalone HTML page
+mdx export --to pdf README.md    # PDF document (native, no browser needed)
+mdx export --to json README.md   # AST as JSON (for tooling)
+mdx export --to txt README.md    # plain text (strip formatting)
 ```
 
-### `md publish` — Static site generator
+### `mdx publish` — Static site generator
 
 Generates a static site from a directory of markdown files. Supports YAML front matter for metadata.
 
 ```bash
-md publish ./blog --out ./dist
+mdx publish ./blog --out ./dist
 ```
 
 Front matter format:
@@ -182,28 +182,28 @@ draft: true
 - **Math** — inline `$...$` and display `$$...$$` blocks via KaTeX
 - **Images** — inline image rendering in supported terminals (iTerm2, kitty)
 - **URL fetching** — render markdown directly from URLs
-- **Live reload** — `md serve` opens a browser preview that updates on file changes
+- **Live reload** — `mdx serve` opens a browser preview that updates on file changes
 - **Built-in editor** — toggle a markdown editor in the browser, saves back to disk
 - **Search & replace** — find and replace text in the editor with regex support
 - **Image upload** — drag & drop or paste images into the editor
 - **Print / PDF** — browser-native print with clean print-optimized CSS
-- **Directory mode** — `md serve ./dir/` shows a file index with card grid
-- **Multi-file mode** — `md serve a.md b.md` with sidebar file navigation
+- **Directory mode** — `mdx serve ./dir/` shows a file index with card grid
+- **Multi-file mode** — `mdx serve a.md b.md` with sidebar file navigation
 - **Dark/light theme** — toggle with button or `t` key, persisted in localStorage
-- **Slide presentation** — `md present` splits on `---` for terminal slides
-- **ToC generation** — `md toc` extracts headings with depth control
+- **Slide presentation** — `mdx present` splits on `---` for terminal slides
+- **ToC generation** — `mdx toc` extracts headings with depth control
 - **Document stats** — word count, reading time, heading/link/image counts
-- **Formatter** — normalize markdown style with `md fmt`
+- **Formatter** — normalize markdown style with `mdx fmt`
 - **Linter** — check for broken links, duplicates, missing alt text
 - **Diff viewer** — colored side-by-side or unified diff
 - **Format export** — export to HTML, PDF, JSON AST, or plain text
-- **Static site generator** — `md publish` builds a blog from markdown files
+- **Static site generator** — `mdx publish` builds a blog from markdown files
 - **Alerts** — GitHub-style note/tip/warning/caution blocks
 - **Footnotes, task lists, strikethrough, autolinks** — full GFM support
 
 ## How It Works
 
-`md` parses markdown into an AST using [comrak](https://github.com/kivikakk/comrak) (a CommonMark + GFM parser), then walks the tree to produce styled terminal output using ANSI escape codes. Text wrapping respects terminal width. For browser preview, it generates HTML and serves it via a local HTTP server with SSE-based live reload.
+`mdx` parses markdown into an AST using [comrak](https://github.com/kivikakk/comrak) (a CommonMark + GFM parser), then walks the tree to produce styled terminal output using ANSI escape codes. Text wrapping respects terminal width. For browser preview, it generates HTML and serves it via a local HTTP server with SSE-based live reload.
 
 ```
 markdown file

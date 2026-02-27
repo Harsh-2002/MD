@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::convert::Infallible;
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
@@ -21,6 +21,38 @@ use crate::cli::ThemeName;
 use crate::html;
 
 const SYNTAX_THEME: &str = "base16-ocean.dark";
+
+/// Print local network addresses the server is reachable at.
+fn print_network_addresses(port: u16) {
+    if let Ok(interfaces) = std::net::UdpSocket::bind("0.0.0.0:0") {
+        // Try to detect IPs by checking network interfaces
+        // Use a connect trick to find the primary local IP
+        let _ = interfaces; // drop the probe socket
+    }
+
+    let mut addrs: Vec<IpAddr> = Vec::new();
+
+    // Always include localhost
+    addrs.push(IpAddr::V4(std::net::Ipv4Addr::LOCALHOST));
+
+    // Detect LAN IPs by probing a UDP socket (doesn't send traffic)
+    if let Ok(sock) = std::net::UdpSocket::bind("0.0.0.0:0") {
+        // Connect to a public address to determine the default route IP
+        if sock.connect("8.8.8.8:80").is_ok() {
+            if let Ok(local_addr) = sock.local_addr() {
+                let ip = local_addr.ip();
+                if ip != IpAddr::V4(std::net::Ipv4Addr::LOCALHOST) {
+                    addrs.push(ip);
+                }
+            }
+        }
+    }
+
+    eprintln!("  Available on:");
+    for addr in &addrs {
+        eprintln!("    http://{}:{}", addr, port);
+    }
+}
 
 struct AppState {
     /// Single-file mode: one entry with key ""
@@ -120,9 +152,10 @@ async fn serve_stdin(args: &ServeArgs) -> Result<(), Box<dyn std::error::Error>>
     let addr = SocketAddr::from(([0, 0, 0, 0], args.port.unwrap_or(0)));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     let actual_port = listener.local_addr()?.port();
-    let url = format!("http://0.0.0.0:{}", actual_port);
+    let url = format!("http://127.0.0.1:{}", actual_port);
 
     eprintln!("  Serving from stdin at {} (no live reload)", url);
+    print_network_addresses(actual_port);
     eprintln!("  Press Ctrl+C to stop");
 
     let _ = open::that(&url);
@@ -237,9 +270,10 @@ async fn serve_single_file(args: &ServeArgs, file: &str) -> Result<(), Box<dyn s
     let addr = SocketAddr::from(([0, 0, 0, 0], args.port.unwrap_or(0)));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     let actual_port = listener.local_addr()?.port();
-    let url = format!("http://0.0.0.0:{}", actual_port);
+    let url = format!("http://127.0.0.1:{}", actual_port);
 
     eprintln!("  Serving {} at {}", filename, url);
+    print_network_addresses(actual_port);
     eprintln!("  Press Ctrl+C to stop");
 
     let _ = open::that(&url);
@@ -406,7 +440,7 @@ async fn serve_directory(
     let addr = SocketAddr::from(([0, 0, 0, 0], args.port.unwrap_or(0)));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     let actual_port = listener.local_addr()?.port();
-    let url = format!("http://0.0.0.0:{}", actual_port);
+    let url = format!("http://127.0.0.1:{}", actual_port);
 
     eprintln!(
         "  Serving {} files from {} at {}",
@@ -414,6 +448,7 @@ async fn serve_directory(
         dir.display(),
         url
     );
+    print_network_addresses(actual_port);
     eprintln!("  Press Ctrl+C to stop");
 
     let _ = open::that(&url);
@@ -573,9 +608,10 @@ async fn serve_multi_files(args: &ServeArgs) -> Result<(), Box<dyn std::error::E
     let addr = SocketAddr::from(([0, 0, 0, 0], args.port.unwrap_or(0)));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     let actual_port = listener.local_addr()?.port();
-    let url = format!("http://0.0.0.0:{}", actual_port);
+    let url = format!("http://127.0.0.1:{}", actual_port);
 
     eprintln!("  Serving {} files at {}", filenames.len(), url);
+    print_network_addresses(actual_port);
     eprintln!("  Press Ctrl+C to stop");
 
     let _ = open::that(&url);

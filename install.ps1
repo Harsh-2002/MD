@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-    Install md — a terminal markdown renderer.
+    Install mdx — a terminal markdown renderer.
 .DESCRIPTION
-    Downloads the latest md release from GitHub, installs the binary,
+    Downloads the latest mdx release from GitHub, installs the binary,
     adds it to PATH, and sets up PowerShell tab completions.
 .EXAMPLE
     irm https://raw.githubusercontent.com/Harsh-2002/MD/main/install.ps1 | iex
@@ -24,16 +24,16 @@ function Main {
 
     $installDir = Get-InstallDir
 
-    Write-Host "Installing md $version ($arch)..."
+    Write-Host "Installing mdx $version ($arch)..."
 
-    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "md-install-$PID"
+    $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) "mdx-install-$PID"
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
 
     try {
         # Download
         $target = "$arch-pc-windows-msvc"
-        $url = "https://github.com/Harsh-2002/MD/releases/download/$version/md-$target.tar.gz"
-        $tarball = Join-Path $tempDir "md.tar.gz"
+        $url = "https://github.com/Harsh-2002/MD/releases/download/$version/mdx-$target.tar.gz"
+        $tarball = Join-Path $tempDir "mdx.tar.gz"
 
         Write-Host "  Downloading $version..."
         $prevProgressPref = $ProgressPreference
@@ -58,7 +58,7 @@ function Main {
             exit 1
         }
 
-        $binary = Join-Path $tempDir "md.exe"
+        $binary = Join-Path $tempDir "mdx.exe"
         if (-not (Test-Path $binary)) {
             Write-Host "Error: binary not found in archive." -ForegroundColor Red
             exit 1
@@ -66,7 +66,7 @@ function Main {
 
         # Install
         New-Item -ItemType Directory -Path $installDir -Force | Out-Null
-        $dest = Join-Path $installDir "md.exe"
+        $dest = Join-Path $installDir "mdx.exe"
         Copy-Item $binary $dest -Force
 
         # Verify
@@ -80,8 +80,8 @@ function Main {
         Setup-Completions $dest
 
         Write-Host ""
-        Write-Host "  md $version installed to $dest"
-        Write-Host "  Restart your terminal, then run 'md --help' to get started."
+        Write-Host "  mdx $version installed to $dest"
+        Write-Host "  Restart your terminal, then run 'mdx --help' to get started."
         Write-Host ""
     }
     finally {
@@ -106,7 +106,7 @@ function Get-LatestVersion {
         $prevProgressPref = $ProgressPreference
         $ProgressPreference = 'SilentlyContinue'
         $response = Invoke-RestMethod -Uri "https://api.github.com/repos/Harsh-2002/MD/releases/latest" `
-            -Headers @{ 'User-Agent' = 'md-cli-installer' } `
+            -Headers @{ 'User-Agent' = 'mdx-cli-installer' } `
             -UseBasicParsing
         $ProgressPreference = $prevProgressPref
         return $response.tag_name
@@ -117,7 +117,7 @@ function Get-LatestVersion {
 }
 
 function Get-InstallDir {
-    return Join-Path $env:LOCALAPPDATA "Programs\md"
+    return Join-Path $env:LOCALAPPDATA "Programs\mdx"
 }
 
 function Add-ToUserPath {
@@ -137,15 +137,15 @@ function Add-ToUserPath {
 
     [System.Environment]::SetEnvironmentVariable('Path', $newPath, 'User')
 
-    # Update current session so the user can use md immediately after sourcing
+    # Update current session so the user can use mdx immediately after sourcing
     if (-not ($env:Path -split ';' | Where-Object { $_ -eq $Dir })) {
         $env:Path = "$env:Path;$Dir"
     }
 
     # Broadcast WM_SETTINGCHANGE so new Explorer/terminal windows pick up the change
     try {
-        if (-not ([System.Management.Automation.PSTypeName]'MD.Installer.NativeMethods').Type) {
-            Add-Type -Namespace 'MD.Installer' -Name 'NativeMethods' -MemberDefinition @'
+        if (-not ([System.Management.Automation.PSTypeName]'MDX.Installer.NativeMethods').Type) {
+            Add-Type -Namespace 'MDX.Installer' -Name 'NativeMethods' -MemberDefinition @'
 [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
 public static extern IntPtr SendMessageTimeout(
     IntPtr hWnd, uint Msg, UIntPtr wParam, string lParam,
@@ -155,7 +155,7 @@ public static extern IntPtr SendMessageTimeout(
         $HWND_BROADCAST = [IntPtr]0xffff
         $WM_SETTINGCHANGE = 0x001A
         $result = [UIntPtr]::Zero
-        [MD.Installer.NativeMethods]::SendMessageTimeout(
+        [MDX.Installer.NativeMethods]::SendMessageTimeout(
             $HWND_BROADCAST, $WM_SETTINGCHANGE, [UIntPtr]::Zero,
             'Environment', 2, 5000, [ref]$result
         ) | Out-Null
@@ -168,10 +168,10 @@ public static extern IntPtr SendMessageTimeout(
 function Setup-Completions {
     param([string]$MdBin)
 
-    $completionsDir = Join-Path $env:LOCALAPPDATA "md\completions"
+    $completionsDir = Join-Path $env:LOCALAPPDATA "mdx\completions"
     New-Item -ItemType Directory -Path $completionsDir -Force | Out-Null
 
-    $completionFile = Join-Path $completionsDir "md.ps1"
+    $completionFile = Join-Path $completionsDir "mdx.ps1"
     & $MdBin --completions powershell 2>$null | Out-File -FilePath $completionFile -Encoding utf8
 
     if (-not (Test-Path $completionFile) -or (Get-Item $completionFile).Length -eq 0) {
@@ -190,7 +190,7 @@ function Setup-Completions {
     $sourceLine = ". `"$completionFile`""
     $profileContent = Get-Content $PROFILE -Raw -ErrorAction SilentlyContinue
     if (-not $profileContent -or -not $profileContent.Contains($completionFile)) {
-        Add-Content -Path $PROFILE -Value "`n# md shell completions`n$sourceLine"
+        Add-Content -Path $PROFILE -Value "`n# mdx shell completions`n$sourceLine"
     }
 }
 

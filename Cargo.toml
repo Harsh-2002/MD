@@ -1,6 +1,6 @@
 [package]
-name = "md"
-version = "4.0.0"
+name = "mdx"
+version = "5.0.0"
 edition = "2024"
 description = "A terminal markdown renderer with colors, formatting, and diagram support"
 license = "MIT"
@@ -8,6 +8,9 @@ repository = "https://github.com/Harsh-2002/MD"
 homepage = "https://github.com/Harsh-2002/MD"
 keywords = ["markdown", "terminal", "cli", "renderer"]
 categories = ["command-line-utilities", "text-processing"]
+
+[lib]
+name = "md"
 
 [dependencies]
 comrak = { version = "0.50", default-features = false, features = ["syntect"] }

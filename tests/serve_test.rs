@@ -31,13 +31,13 @@ impl Drop for ServeProcess {
 }
 
 fn start_serve(args: &[&str]) -> ServeProcess {
-    let mut child = Command::new(env!("CARGO_BIN_EXE_md"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_mdx"))
         .arg("serve")
         .args(args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .expect("Failed to start md serve");
+        .expect("Failed to start mdx serve");
 
     let stderr = child.stderr.take().unwrap();
     let mut reader = BufReader::new(stderr);

@@ -14,43 +14,43 @@ main() {
         exit 1
     fi
 
-    echo "Installing md ${version} (${platform})..."
+    echo "Installing mdx ${version} (${platform})..."
 
     tmp=$(mktemp -d)
     trap 'rm -rf "$tmp"' EXIT
 
-    url="https://github.com/Harsh-2002/MD/releases/download/${version}/md-${platform}.tar.gz"
+    url="https://github.com/Harsh-2002/MD/releases/download/${version}/mdx-${platform}.tar.gz"
 
-    if ! curl -fsSL --retry 3 --retry-delay 2 "$url" -o "${tmp}/md.tar.gz"; then
+    if ! curl -fsSL --retry 3 --retry-delay 2 "$url" -o "${tmp}/mdx.tar.gz"; then
         echo "Error: failed to download from:" >&2
         echo "  ${url}" >&2
         echo "Release binaries may still be building. Try again in a few minutes." >&2
         exit 1
     fi
 
-    tar xzf "${tmp}/md.tar.gz" -C "$tmp"
+    tar xzf "${tmp}/mdx.tar.gz" -C "$tmp"
 
-    if [ ! -f "${tmp}/md" ]; then
+    if [ ! -f "${tmp}/mdx" ]; then
         echo "Error: binary not found in archive." >&2
         exit 1
     fi
 
     mkdir -p "$bin_dir"
-    cp "${tmp}/md" "${bin_dir}/md"
-    chmod +x "${bin_dir}/md"
+    cp "${tmp}/mdx" "${bin_dir}/mdx"
+    chmod +x "${bin_dir}/mdx"
 
-    if ! "${bin_dir}/md" --version >/dev/null 2>&1; then
+    if ! "${bin_dir}/mdx" --version >/dev/null 2>&1; then
         echo "Error: installed binary is not executable." >&2
         exit 1
     fi
 
     ensure_in_path "$bin_dir"
-    setup_completions "${bin_dir}/md"
+    setup_completions "${bin_dir}/mdx"
     reload_shell
 
     echo ""
-    echo "  md ${version} installed to ${bin_dir}/md"
-    echo "  Run 'md --help' to get started."
+    echo "  mdx ${version} installed to ${bin_dir}/mdx"
+    echo "  Run 'mdx --help' to get started."
     echo ""
 }
 
@@ -152,12 +152,12 @@ add_line() {
 }
 
 setup_completions() {
-    md_bin="$1"
+    mdx_bin="$1"
     shell=$(basename "$SHELL")
     case "$shell" in
-        bash) setup_bash "$md_bin" ;;
-        zsh)  setup_zsh "$md_bin" ;;
-        fish) setup_fish "$md_bin" ;;
+        bash) setup_bash "$mdx_bin" ;;
+        zsh)  setup_zsh "$mdx_bin" ;;
+        fish) setup_fish "$mdx_bin" ;;
         *) ;;
     esac
 }
@@ -165,10 +165,10 @@ setup_completions() {
 setup_bash() {
     dir="${HOME}/.local/share/bash-completion/completions"
     mkdir -p "$dir"
-    "$1" --completions bash > "$dir/md"
+    "$1" --completions bash > "$dir/mdx"
 
     # shellcheck disable=SC2016
-    line='[ -f "${HOME}/.local/share/bash-completion/completions/md" ] && . "${HOME}/.local/share/bash-completion/completions/md"'
+    line='[ -f "${HOME}/.local/share/bash-completion/completions/mdx" ] && . "${HOME}/.local/share/bash-completion/completions/mdx"'
 
     rc=$(get_bash_rc)
     add_line "$rc" "$line"
@@ -177,7 +177,7 @@ setup_bash() {
 setup_zsh() {
     dir="${HOME}/.local/share/zsh/site-functions"
     mkdir -p "$dir"
-    "$1" --completions zsh > "$dir/_md"
+    "$1" --completions zsh > "$dir/_mdx"
 
     # shellcheck disable=SC2016
     add_line "${HOME}/.zshrc" 'fpath=("'"$dir"'" $fpath)'
@@ -191,7 +191,7 @@ setup_zsh() {
 setup_fish() {
     dir="${HOME}/.config/fish/completions"
     mkdir -p "$dir"
-    "$1" --completions fish > "$dir/md.fish"
+    "$1" --completions fish > "$dir/mdx.fish"
 }
 
 reload_shell() {

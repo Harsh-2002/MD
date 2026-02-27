@@ -69,16 +69,16 @@ jobs:
         run: |
           cd target/${{ matrix.target }}/release
           if [[ "${{ matrix.target }}" == *"windows"* ]]; then
-            tar czf ../../../md-${{ matrix.target }}.tar.gz md.exe
+            tar czf ../../../mdx-${{ matrix.target }}.tar.gz mdx.exe
           else
-            tar czf ../../../md-${{ matrix.target }}.tar.gz md
+            tar czf ../../../mdx-${{ matrix.target }}.tar.gz mdx
           fi
           cd ../../..
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: md-${{ matrix.target }}
-          path: md-${{ matrix.target }}.tar.gz
+          name: mdx-${{ matrix.target }}
+          path: mdx-${{ matrix.target }}.tar.gz
 
   release:
     needs: build
@@ -92,5 +92,5 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: md-*.tar.gz
+          files: mdx-*.tar.gz
           generate_release_notes: true

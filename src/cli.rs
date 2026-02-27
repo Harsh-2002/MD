@@ -2,11 +2,11 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "md",
+    name = "mdx",
     version,
     about = "Render markdown beautifully in the terminal",
     subcommand_help_heading = "Commands",
-    after_help = "Examples:\n  md README.md                          Render in terminal\n  md serve .                            Live preview in browser\n  md stats README.md                    Show word count & stats\n  md fmt --check README.md              Check formatting\n  md export --to html README.md         Export to HTML\n  md export --to pdf README.md          Export to PDF\n  md publish ./blog --out ./dist        Generate static site"
+    after_help = "Examples:\n  mdx README.md                          Render in terminal\n  mdx serve .                            Live preview in browser\n  mdx stats README.md                    Show word count & stats\n  mdx fmt --check README.md              Check formatting\n  mdx export --to html README.md         Export to HTML\n  mdx export --to pdf README.md          Export to PDF\n  mdx publish ./blog --out ./dist        Generate static site"
 )]
 pub struct Args {
     #[command(subcommand)]
@@ -95,7 +95,7 @@ pub enum Command {
     /// Generate a static site from a directory of markdown files
     Publish(PublishArgs),
 
-    /// Update md to the latest version
+    /// Update mdx to the latest version
     #[cfg(feature = "url")]
     Update,
 }
@@ -147,7 +147,7 @@ pub struct StatsArgs {
 
 #[derive(clap::Args, Debug)]
 #[command(
-    after_help = "Examples:\n  md fmt README.md                Print formatted to stdout\n  md fmt --in-place README.md     Format file in place\n  md fmt --check README.md        Exit 1 if not formatted (CI)"
+    after_help = "Examples:\n  mdx fmt README.md                Print formatted to stdout\n  mdx fmt --in-place README.md     Format file in place\n  mdx fmt --check README.md        Exit 1 if not formatted (CI)"
 )]
 pub struct FmtArgs {
     /// Markdown file (reads stdin if omitted)
@@ -170,7 +170,7 @@ pub struct LintArgs {
 
 #[derive(clap::Args, Debug)]
 #[command(
-    after_help = "Examples:\n  md diff old.md new.md           Side-by-side diff\n  md diff -u old.md new.md        Unified diff\n  md diff - new.md                Read old from stdin"
+    after_help = "Examples:\n  mdx diff old.md new.md           Side-by-side diff\n  mdx diff -u old.md new.md        Unified diff\n  mdx diff - new.md                Read old from stdin"
 )]
 pub struct DiffArgs {
     /// First file (use "-" for stdin)
@@ -186,7 +186,7 @@ pub struct DiffArgs {
 
 #[derive(clap::Args, Debug)]
 #[command(
-    after_help = "Examples:\n  md export --to html README.md          Standalone HTML page\n  md export --to pdf README.md           PDF document\n  md export --to pdf -o out.pdf file.md  PDF with custom output path\n  md export --to json README.md          AST as JSON\n  md export --to txt README.md           Plain text (strip formatting)"
+    after_help = "Examples:\n  mdx export --to html README.md          Standalone HTML page\n  mdx export --to pdf README.md           PDF document\n  mdx export --to pdf -o out.pdf file.md  PDF with custom output path\n  mdx export --to json README.md          AST as JSON\n  mdx export --to txt README.md           Plain text (strip formatting)"
 )]
 pub struct ExportArgs {
     /// Markdown file (reads stdin if omitted)
