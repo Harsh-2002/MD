@@ -4,11 +4,35 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>mdx — Markdown toolchain for the terminal</title>
-<meta name="description" content="A fast terminal markdown renderer and toolchain built in Rust. Render, serve, format, lint, diff, export, and publish markdown — all from one binary.">
-<meta name="theme-color" content="#1e1e1e">
+<meta name="description" content="A fast, single-binary markdown toolchain built in Rust. Render in the terminal, preview in the browser, format, lint, diff, export to HTML/PDF, and publish static sites.">
+<meta name="theme-color" content="#1e1e1e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#faf8f5" media="(prefers-color-scheme: light)">
+<link rel="canonical" href="https://harsh-2002.github.io/MD/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="mdx — Markdown toolchain for the terminal">
+<meta property="og:description" content="A fast, single-binary markdown toolchain built in Rust. Render in the terminal, preview in the browser, format, lint, diff, export to HTML/PDF, and publish static sites.">
+<meta property="og:url" content="https://harsh-2002.github.io/MD/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="mdx — Markdown toolchain for the terminal">
+<meta name="twitter:description" content="A fast, single-binary markdown toolchain built in Rust. Render in the terminal, preview in the browser, format, lint, diff, export to HTML/PDF, and publish static sites.">
+<meta name="keywords" content="markdown, terminal, cli, rust, renderer, formatter, linter, live preview, static site generator, mdx">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>M</text></svg>">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "mdx",
+  "description": "A fast, single-binary markdown toolchain built in Rust.",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "macOS, Linux, Windows",
+  "url": "https://harsh-2002.github.io/MD/",
+  "codeRepository": "https://github.com/Harsh-2002/MD",
+  "programmingLanguage": "Rust",
+  "license": "https://opensource.org/licenses/MIT",
+  "offers": { "@type": "Offer", "price": "0" }
+}
+</script>
 <style>
-/* === Theme variables (from mdx serve) === */
 :root {
     --bg: #1e1e1e;
     --fg: #d4d4d4;
@@ -24,22 +48,23 @@
     --accent-purple: #c49bff;
 }
 
-[data-theme="light"] {
-    --bg: #faf8f5;
-    --fg: #37352f;
-    --fg-muted: #787774;
-    --border: #e3e2de;
-    --bg-subtle: #f1efe9;
-    --bg-code: #edebe5;
-    --accent: #2383e2;
-    --accent-bg: rgba(35, 131, 226, 0.08);
-    --accent-green: #2a8546;
-    --accent-red: #d44c47;
-    --accent-yellow: #a07816;
-    --accent-purple: #7c5fc0;
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg: #faf8f5;
+        --fg: #37352f;
+        --fg-muted: #787774;
+        --border: #e3e2de;
+        --bg-subtle: #f1efe9;
+        --bg-code: #edebe5;
+        --accent: #2383e2;
+        --accent-bg: rgba(35, 131, 226, 0.08);
+        --accent-green: #2a8546;
+        --accent-red: #d44c47;
+        --accent-yellow: #a07816;
+        --accent-purple: #7c5fc0;
+    }
 }
 
-/* === Base reset === */
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 
@@ -53,7 +78,6 @@ body {
     padding: 0;
 }
 
-/* === Reading progress bar === */
 #progress {
     position: fixed;
     top: 0;
@@ -65,38 +89,12 @@ body {
     transition: width 0.1s linear;
 }
 
-/* === Theme toggle === */
-#theme-toggle {
-    position: fixed;
-    top: 12px;
-    right: 12px;
-    z-index: 110;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: 1px solid var(--border);
-    background: var(--bg-subtle);
-    color: var(--fg);
-    font-size: 18px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s;
-    line-height: 1;
-    padding: 0;
-}
-
-#theme-toggle:hover { background: var(--border); }
-
-/* === Article layout === */
 .article {
     max-width: 900px;
     margin: 0 auto;
     padding: 3rem 1.5rem 4rem;
 }
 
-/* === Typography === */
 h1, h2, h3, h4, h5, h6 {
     margin-top: 2em;
     margin-bottom: 0.5em;
@@ -117,24 +115,37 @@ h2 {
     border-bottom: 1px solid var(--border);
 }
 
-h3 { font-size: 1.25em; }
-
-p { margin: 0 0 1em; }
-
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
-
-strong { font-weight: 600; }
-
-/* === Tagline === */
-.tagline {
-    font-size: 1.2em;
+h2 a.anchor {
     color: var(--fg-muted);
-    margin: -0.5em 0 1.5em;
-    line-height: 1.5;
+    opacity: 0;
+    text-decoration: none;
+    margin-left: 0.3em;
+    font-weight: 400;
+    transition: opacity 0.2s;
 }
 
-/* === Inline code === */
+h2:hover a.anchor { opacity: 1; }
+h2 a.anchor:hover { color: var(--accent); }
+
+h3 { font-size: 1.25em; }
+p { margin: 0 0 1em; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+strong { font-weight: 600; }
+
+.tagline {
+    font-size: 1.15em;
+    color: var(--fg-muted);
+    margin: -0.3em 0 1em;
+    line-height: 1.6;
+}
+
+.byline {
+    color: var(--fg-muted);
+    font-size: 0.9em;
+    margin: 0 0 2em;
+}
+
 code {
     font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     font-size: 85%;
@@ -143,7 +154,6 @@ code {
     border-radius: 6px;
 }
 
-/* === Code blocks === */
 pre {
     position: relative;
     background: var(--bg-code);
@@ -198,7 +208,6 @@ pre code {
 
 pre:hover .copy-btn { opacity: 1; }
 
-/* === Install tabs === */
 .install-tabs {
     display: flex;
     gap: 0;
@@ -226,13 +235,8 @@ pre:hover .copy-btn { opacity: 1; }
     border-bottom-color: var(--accent);
 }
 
-.install-panel {
-    display: none;
-}
-
-.install-panel.active {
-    display: block;
-}
+.install-panel { display: none; }
+.install-panel.active { display: block; }
 
 .install-panel pre {
     border-top-left-radius: 0;
@@ -241,32 +245,21 @@ pre:hover .copy-btn { opacity: 1; }
     margin-top: 0;
 }
 
-/* === Feature list === */
 .features {
-    list-style: none;
-    padding: 0;
+    list-style: disc;
+    padding-left: 1.5em;
     margin: 0 0 1em;
 }
 
 .features li {
-    padding: 0.4em 0;
-    padding-left: 1.6em;
-    position: relative;
+    padding: 0.3em 0;
+    line-height: 1.6;
 }
 
-.features li::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.7em;
-    width: 8px;
-    height: 8px;
-    border-radius: 2px;
-    background: var(--accent);
-    opacity: 0.7;
+.features li::marker {
+    color: var(--accent);
 }
 
-/* === CLI tool cards === */
 .tool-card {
     background: var(--bg-subtle);
     border: 1px solid var(--border);
@@ -294,27 +287,28 @@ pre:hover .copy-btn { opacity: 1; }
     font-size: 0.95em;
 }
 
-.tool-card pre {
-    margin-bottom: 0;
-}
+.tool-card pre { margin-bottom: 0; }
 
-/* === ASCII pipeline === */
-.pipeline {
-    text-align: center;
-    font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-    font-size: 0.85em;
-    line-height: 1.6;
-    color: var(--fg-muted);
+.pipeline pre {
+    border: none;
+    background: none;
+    padding: 0;
     margin: 1.5em 0;
+    line-height: 1.7;
     overflow-x: auto;
 }
 
-.pipeline .highlight {
+.pipeline code {
+    color: var(--fg-muted);
+    font-size: 0.9em;
+    white-space: pre;
+}
+
+.pipeline .hl {
     color: var(--accent);
     font-weight: 600;
 }
 
-/* === Tables === */
 table {
     border-collapse: collapse;
     width: 100%;
@@ -335,10 +329,7 @@ th {
 
 tr:nth-child(even) { background: var(--bg-subtle); }
 
-/* === Keyboard shortcuts table === */
-.key-table {
-    font-size: 0.95em;
-}
+.key-table { font-size: 0.95em; }
 
 .key-table kbd {
     background: var(--bg-code);
@@ -349,7 +340,6 @@ tr:nth-child(even) { background: var(--bg-subtle); }
     font-size: 0.85em;
 }
 
-/* === Horizontal rule === */
 hr {
     height: 2px;
     background: var(--border);
@@ -357,7 +347,6 @@ hr {
     margin: 2em 0;
 }
 
-/* === Footer === */
 .footer {
     margin-top: 3em;
     padding-top: 1.5em;
@@ -371,7 +360,24 @@ hr {
     gap: 0.5em;
 }
 
-/* === Blockquote === */
+.footer a { color: var(--fg-muted); }
+.footer a:hover { color: var(--accent); }
+
+.back-to-top {
+    display: block;
+    text-align: center;
+    margin-top: 1em;
+    padding: 0.5em;
+    color: var(--fg-muted);
+    font-size: 0.85em;
+    text-decoration: none;
+}
+
+.back-to-top:hover {
+    color: var(--accent);
+    text-decoration: none;
+}
+
 blockquote {
     margin: 0 0 1em;
     padding: 0 1em;
@@ -379,66 +385,36 @@ blockquote {
     border-left: 3px solid var(--border);
 }
 
-/* === Responsive === */
 @media (max-width: 767px) {
-    .article {
-        padding: 2rem 1rem 3rem;
-    }
-
-    h1 {
-        font-size: 1.8em;
-    }
-
-    h2 {
-        font-size: 1.3em;
-    }
-
-    .tagline {
-        font-size: 1.05em;
-    }
-
-    .install-tabs {
-        flex-wrap: wrap;
-    }
-
-    .install-tab {
-        font-size: 0.8rem;
-        padding: 0.4rem 0.75rem;
-    }
-
-    pre {
-        font-size: 14px;
-    }
-
-    .footer {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    table {
-        display: block;
-        overflow-x: auto;
-    }
+    .article { padding: 2rem 1rem 3rem; }
+    h1 { font-size: 1.8em; }
+    h2 { font-size: 1.3em; }
+    .tagline { font-size: 1em; }
+    .install-tabs { flex-wrap: wrap; }
+    .install-tab { font-size: 0.8rem; padding: 0.4rem 0.75rem; }
+    pre { font-size: 14px; }
+    .footer { flex-direction: column; align-items: flex-start; }
+    table { display: block; overflow-x: auto; }
+    .tool-card { padding: 1rem; }
 }
 
-/* === Smooth color transitions === */
-body, .article, pre, .tool-card, th, tr, .install-tab, code, #theme-toggle {
+body, .article, pre, .tool-card, th, tr, .install-tab, code {
     transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 </style>
 </head>
-<body>
+<body id="top">
 <div id="progress"></div>
-<button id="theme-toggle" aria-label="Toggle theme">&#9790;</button>
 
 <article class="article">
 
-<!-- ===== 1. Header ===== -->
+<!-- ===== Header ===== -->
 <h1><code style="background:none;padding:0;font-size:1em;">mdx</code></h1>
-<p class="tagline">A fast terminal markdown renderer and toolchain built in Rust. Render, serve, format, lint, diff, export, and publish&nbsp;markdown&nbsp;&mdash;&nbsp;all&nbsp;from&nbsp;one&nbsp;binary.</p>
+<p class="tagline">A fast, single-binary markdown toolchain built in Rust. Render in the terminal with syntax highlighting, preview in the browser with live reload, format, lint, diff, export, and publish &mdash; all from one command.</p>
+<p class="byline">By Anurag Vishwakarma &middot; <span id="live-time"></span></p>
 
-<!-- ===== 2. Install ===== -->
-<h2 id="install">Install</h2>
+<!-- ===== Install ===== -->
+<h2 id="install">Install <a href="#install" class="anchor" aria-hidden="true">#</a></h2>
 
 <div class="install-tabs" role="tablist">
     <button class="install-tab active" role="tab" data-tab="macos-linux">macOS / Linux</button>
@@ -458,10 +434,36 @@ body, .article, pre, .tool-card, th, tr, .install-tab, code, #theme-toggle {
 <pre><span class="code-lang">bash</span><code>cargo install --git https://github.com/Harsh-2002/MD --features serve</code><button class="copy-btn" aria-label="Copy">Copy</button></pre>
 </div>
 
-<p>Installs the binary and sets up shell completions automatically.</p>
+<p>Installs the binary and sets up shell completions automatically. Works on macOS, Linux (glibc and musl), and Windows. Supports x86_64 and ARM64.</p>
 
-<!-- ===== 3. Quick Start ===== -->
-<h2 id="quick-start">Quick Start</h2>
+<h3>Pre-built binaries</h3>
+
+<p>Each <a href="https://github.com/Harsh-2002/MD/releases">release</a> includes pre-built binaries for every supported platform. Download the one that matches your system:</p>
+
+<table>
+    <thead>
+        <tr><th>Binary</th><th>Platform</th><th>Architecture</th></tr>
+    </thead>
+    <tbody>
+        <tr><td><code>mdx-x86_64-apple-darwin.tar.gz</code></td><td>macOS</td><td>x86_64 (Intel)</td></tr>
+        <tr><td><code>mdx-aarch64-apple-darwin.tar.gz</code></td><td>macOS</td><td>ARM64 (Apple Silicon)</td></tr>
+        <tr><td><code>mdx-x86_64-unknown-linux-gnu.tar.gz</code></td><td>Linux (glibc)</td><td>x86_64</td></tr>
+        <tr><td><code>mdx-x86_64-unknown-linux-musl.tar.gz</code></td><td>Linux (musl)</td><td>x86_64</td></tr>
+        <tr><td><code>mdx-aarch64-unknown-linux-gnu.tar.gz</code></td><td>Linux (glibc)</td><td>ARM64</td></tr>
+        <tr><td><code>mdx-aarch64-unknown-linux-musl.tar.gz</code></td><td>Linux (musl)</td><td>ARM64</td></tr>
+        <tr><td><code>mdx-armv7-unknown-linux-gnueabihf.tar.gz</code></td><td>Linux (glibc)</td><td>ARMv7 (32-bit)</td></tr>
+        <tr><td><code>mdx-x86_64-pc-windows-msvc.tar.gz</code></td><td>Windows</td><td>x86_64</td></tr>
+        <tr><td><code>mdx-aarch64-pc-windows-msvc.tar.gz</code></td><td>Windows</td><td>ARM64</td></tr>
+    </tbody>
+</table>
+
+<p>Extract and move the binary to a directory in your <code>PATH</code>:</p>
+
+<pre><span class="code-lang">bash</span><code>tar xzf mdx-&lt;target&gt;.tar.gz
+sudo mv mdx /usr/local/bin/</code><button class="copy-btn" aria-label="Copy">Copy</button></pre>
+
+<!-- ===== Quick Start ===== -->
+<h2 id="quick-start">Quick Start <a href="#quick-start" class="anchor" aria-hidden="true">#</a></h2>
 
 <pre><span class="code-lang">bash</span><code>mdx README.md                          <span style="color:var(--fg-muted)"># render in terminal</span>
 mdx README.md --pager                  <span style="color:var(--fg-muted)"># pipe through less</span>
@@ -470,31 +472,31 @@ mdx serve ./notes/                     <span style="color:var(--fg-muted)"># ser
 cat README.md | mdx                    <span style="color:var(--fg-muted)"># read from stdin</span>
 mdx https://example.com/doc.md         <span style="color:var(--fg-muted)"># render from URL</span></code><button class="copy-btn" aria-label="Copy">Copy</button></pre>
 
-<!-- ===== 4. Features ===== -->
-<h2 id="features">Features</h2>
+<!-- ===== Features ===== -->
+<h2 id="features">Features <a href="#features" class="anchor" aria-hidden="true">#</a></h2>
 
 <ul class="features">
     <li><strong>Syntax highlighting</strong> &mdash; language-aware code blocks via syntect</li>
     <li><strong>Tables</strong> &mdash; full GFM table rendering with alignment and cell wrapping</li>
-    <li><strong>Mermaid diagrams</strong> &mdash; rendered as interactive SVG in browser via mermaid.js</li>
+    <li><strong>Mermaid diagrams</strong> &mdash; rendered as interactive SVG in the browser via mermaid.js</li>
     <li><strong>Math</strong> &mdash; inline <code>$...$</code> and display <code>$$...$$</code> blocks via KaTeX</li>
     <li><strong>Images</strong> &mdash; inline image rendering in supported terminals (iTerm2, kitty)</li>
-    <li><strong>Live reload</strong> &mdash; <code>mdx serve</code> opens a browser preview that updates on file changes</li>
-    <li><strong>Built-in editor</strong> &mdash; toggle a markdown editor in the browser, saves back to disk</li>
-    <li><strong>Image upload</strong> &mdash; drag &amp; drop or paste images into the editor</li>
-    <li><strong>Print / PDF</strong> &mdash; browser-native print with clean, print-optimized CSS</li>
-    <li><strong>Dark/light theme</strong> &mdash; toggle with button or <kbd>t</kbd> key, persisted in localStorage</li>
-    <li><strong>Slide presentation</strong> &mdash; <code>mdx present</code> splits on <code>---</code> for terminal slides</li>
-    <li><strong>Alerts</strong> &mdash; GitHub-style note/tip/warning/caution blocks</li>
-    <li><strong>Footnotes, task lists, strikethrough, autolinks</strong> &mdash; full GFM support</li>
+    <li><strong>Live reload</strong> &mdash; <code>mdx serve</code> opens a browser preview that updates on save</li>
+    <li><strong>Built-in editor</strong> &mdash; edit markdown in the browser, saves back to disk</li>
+    <li><strong>Image upload</strong> &mdash; drag and drop or paste images into the editor</li>
+    <li><strong>Print / PDF</strong> &mdash; native PDF export, plus browser print with clean CSS</li>
+    <li><strong>Dark/light theme</strong> &mdash; toggle with button or <kbd>t</kbd>, persisted across sessions</li>
+    <li><strong>Slide presentation</strong> &mdash; <code>mdx present</code> turns <code>---</code> separators into terminal slides</li>
+    <li><strong>Alerts</strong> &mdash; GitHub-style note, tip, warning, and caution blocks</li>
+    <li><strong>Full GFM</strong> &mdash; footnotes, task lists, strikethrough, autolinks</li>
 </ul>
 
-<!-- ===== 5. CLI Tools ===== -->
-<h2 id="cli-tools">CLI Tools</h2>
+<!-- ===== CLI Tools ===== -->
+<h2 id="cli-tools">CLI Tools <a href="#cli-tools" class="anchor" aria-hidden="true">#</a></h2>
 
 <div class="tool-card">
     <h3><code>mdx stats</code> &mdash; Document statistics</h3>
-    <p>Word count, reading time, headings, links, images, code blocks.</p>
+    <p>Word count, reading time, headings, links, images, and code blocks at a glance.</p>
 <pre><code>$ mdx stats README.md
      Words: 1,247
      Lines: 89
@@ -506,7 +508,7 @@ Reading time: ~5 min</code><button class="copy-btn" aria-label="Copy">Copy</butt
 
 <div class="tool-card">
     <h3><code>mdx fmt</code> &mdash; Markdown formatter</h3>
-    <p>Normalizes markdown formatting. Use <code>--check</code> in CI to ensure consistent style.</p>
+    <p>Normalizes markdown formatting. Use <code>--check</code> in CI to enforce consistent style.</p>
 <pre><span class="code-lang">bash</span><code>mdx fmt README.md                <span style="color:var(--fg-muted)"># print formatted to stdout</span>
 mdx fmt --in-place README.md     <span style="color:var(--fg-muted)"># overwrite the file</span>
 mdx fmt --check README.md        <span style="color:var(--fg-muted)"># exit 1 if not formatted (CI)</span></code><button class="copy-btn" aria-label="Copy">Copy</button></pre>
@@ -514,7 +516,7 @@ mdx fmt --check README.md        <span style="color:var(--fg-muted)"># exit 1 if
 
 <div class="tool-card">
     <h3><code>mdx lint</code> &mdash; Markdown linter</h3>
-    <p>Checks for broken links, duplicate headings, missing image alt text, trailing whitespace.</p>
+    <p>Checks for broken links, duplicate headings, missing image alt text, and trailing whitespace.</p>
 <pre><code>$ mdx lint README.md
   README.md:12 broken link: ./missing.md
   README.md:34 image missing alt text
@@ -532,7 +534,7 @@ mdx diff - new.md                <span style="color:var(--fg-muted)"># read firs
 
 <div class="tool-card">
     <h3><code>mdx export</code> &mdash; Format conversion</h3>
-    <p>Export markdown to HTML, PDF, JSON AST, or plain text.</p>
+    <p>Export markdown to standalone HTML, PDF, JSON AST, or plain text.</p>
 <pre><span class="code-lang">bash</span><code>mdx export --to html README.md   <span style="color:var(--fg-muted)"># standalone HTML page</span>
 mdx export --to pdf README.md    <span style="color:var(--fg-muted)"># PDF (native, no browser needed)</span>
 mdx export --to json README.md   <span style="color:var(--fg-muted)"># AST as JSON (for tooling)</span>
@@ -541,30 +543,22 @@ mdx export --to txt README.md    <span style="color:var(--fg-muted)"># plain tex
 
 <div class="tool-card">
     <h3><code>mdx publish</code> &mdash; Static site generator</h3>
-    <p>Generate a static site from a directory of markdown files with YAML front matter.</p>
+    <p>Generate a static site from a directory of markdown files. Supports YAML front matter for titles, dates, tags, and draft status.</p>
 <pre><span class="code-lang">bash</span><code>mdx publish ./blog --out ./dist</code><button class="copy-btn" aria-label="Copy">Copy</button></pre>
 </div>
 
-<!-- ===== 6. Serve Mode ===== -->
-<h2 id="serve-mode">Serve Mode</h2>
+<!-- ===== Serve Mode ===== -->
+<h2 id="serve-mode">Serve Mode <a href="#serve-mode" class="anchor" aria-hidden="true">#</a></h2>
 
-<p><code>mdx serve</code> turns your markdown into a live browser preview. It supports three modes:</p>
+<p><code>mdx serve</code> turns your markdown into a live browser preview with three modes:</p>
 
-<p><strong>Single file</strong> &mdash; <code>mdx serve file.md</code> opens the file with live reload. Edit in your favorite editor and the browser updates instantly.</p>
+<p><strong>Single file</strong> &mdash; <code>mdx serve file.md</code> opens a live preview. Edit in your editor, the browser updates instantly on save.</p>
 
-<p><strong>Directory</strong> &mdash; <code>mdx serve ./notes/</code> shows all <code>.md</code> files as a card grid. Click any card to view it. Click the "+" card to create a new note.</p>
+<p><strong>Directory</strong> &mdash; <code>mdx serve ./notes/</code> shows all <code>.md</code> files as a card grid. Click any card to view it, or click "+" to create a new note.</p>
 
-<p><strong>Multiple files</strong> &mdash; <code>mdx serve a.md b.md c.md</code> serves the listed files with a sidebar for navigation and search filter.</p>
+<p><strong>Multiple files</strong> &mdash; <code>mdx serve a.md b.md c.md</code> serves the listed files with sidebar navigation and search.</p>
 
-<p>All modes include:</p>
-<ul>
-    <li>Built-in markdown editor (toggle with pencil icon or <kbd>e</kbd>)</li>
-    <li>Search &amp; replace in editor (<kbd>Ctrl+F</kbd> / <kbd>Ctrl+H</kbd>)</li>
-    <li>Drag &amp; drop image upload (or paste from clipboard)</li>
-    <li>Print / PDF export button</li>
-    <li>Dark/light theme toggle</li>
-    <li>Table of contents sidebar</li>
-</ul>
+<p>All modes include a built-in editor, image upload (drag and drop or paste), print/PDF export, dark/light theme, and a table of contents sidebar.</p>
 
 <table class="key-table">
     <thead>
@@ -576,74 +570,87 @@ mdx export --to txt README.md    <span style="color:var(--fg-muted)"># plain tex
         <tr><td><kbd>[</kbd></td><td>Toggle sidebar</td></tr>
         <tr><td><kbd>]</kbd></td><td>Switch sidebar tab</td></tr>
         <tr><td><kbd>Ctrl+F</kbd></td><td>Search in editor</td></tr>
-        <tr><td><kbd>Ctrl+H</kbd></td><td>Search &amp; replace</td></tr>
+        <tr><td><kbd>Ctrl+H</kbd></td><td>Search and replace</td></tr>
     </tbody>
 </table>
 
-<!-- ===== 7. How It Works ===== -->
-<h2 id="how-it-works">How It Works</h2>
+<!-- ===== How It Works ===== -->
+<h2 id="how-it-works">How It Works <a href="#how-it-works" class="anchor" aria-hidden="true">#</a></h2>
 
-<p><code>mdx</code> parses markdown into an AST using <a href="https://github.com/kivikakk/comrak">comrak</a> (a CommonMark + GFM parser), then walks the tree to produce styled terminal output using ANSI escape codes. For browser preview, it generates HTML and serves it via a local HTTP server with SSE-based live reload.</p>
+<p><code>mdx</code> parses markdown into an AST using <a href="https://github.com/kivikakk/comrak">comrak</a> (CommonMark + GFM), then walks the tree to produce either styled terminal output with ANSI escape codes, or HTML served via a local server with SSE-based live reload.</p>
 
-<div class="pipeline"><pre><code><span class="highlight">markdown file</span>
-       |
-       v
-    <span class="highlight">comrak</span> ──&gt; AST
-       |
-       ├──&gt; terminal renderer ──&gt; <span class="highlight">ANSI output</span>
-       |
-       ├──&gt; HTML renderer ──&gt; axum server ──&gt; <span class="highlight">browser</span> (live reload via SSE)
-       |
-       └──&gt; CLI tools (<span class="highlight">stats, fmt, lint, diff, export, publish</span>)</code></pre></div>
+<div class="pipeline"><pre><code><span class="hl">markdown file</span>
+      |
+      v
+   <span class="hl">comrak</span>  -->  AST
+      |
+      |-->  terminal renderer  -->  <span class="hl">ANSI output</span>
+      |
+      |-->  HTML renderer  -->  axum server  -->  <span class="hl">browser</span> (live reload via SSE)
+      |
+      '-->  CLI tools (<span class="hl">stats, fmt, lint, diff, export, publish</span>)</code></pre></div>
 
-<!-- ===== 8. Footer ===== -->
+<!-- ===== Credits ===== -->
+<h2 id="credits">Credits <a href="#credits" class="anchor" aria-hidden="true">#</a></h2>
+
+<p><code>mdx</code> is built on top of these open-source libraries:</p>
+
+<table>
+    <thead>
+        <tr><th>Library</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+        <tr><td><a href="https://github.com/kivikakk/comrak">comrak</a></td><td>Markdown parsing (CommonMark + GFM)</td></tr>
+        <tr><td><a href="https://github.com/trishume/syntect">syntect</a></td><td>Syntax highlighting for code blocks</td></tr>
+        <tr><td><a href="https://github.com/clap-rs/clap">clap</a></td><td>CLI argument parsing and completions</td></tr>
+        <tr><td><a href="https://github.com/tokio-rs/axum">axum</a></td><td>HTTP server (serve mode)</td></tr>
+        <tr><td><a href="https://github.com/tokio-rs/tokio">tokio</a></td><td>Async runtime</td></tr>
+        <tr><td><a href="https://github.com/notify-rs/notify">notify</a></td><td>File system watcher (live reload)</td></tr>
+        <tr><td><a href="https://github.com/ratatui/ratatui">ratatui</a></td><td>TUI framework (watch and present modes)</td></tr>
+        <tr><td><a href="https://github.com/crossterm-rs/crossterm">crossterm</a></td><td>Terminal manipulation</td></tr>
+        <tr><td><a href="https://github.com/mitsuhiko/similar">similar</a></td><td>Text diffing</td></tr>
+        <tr><td><a href="https://github.com/mgeisler/textwrap">textwrap</a></td><td>Text wrapping</td></tr>
+        <tr><td><a href="https://github.com/image-rs/image">image</a></td><td>Image decoding (PNG, JPEG, GIF, WebP)</td></tr>
+        <tr><td><a href="https://docs.rs/genpdfi">genpdfi</a></td><td>PDF generation</td></tr>
+        <tr><td><a href="https://github.com/algesten/ureq">ureq</a></td><td>HTTP client (URL fetching)</td></tr>
+    </tbody>
+</table>
+
+<!-- ===== Footer ===== -->
 <footer class="footer">
-    <span>MIT License &middot; Built with Rust</span>
-    <span><a href="https://github.com/Harsh-2002/MD">GitHub</a></span>
+    <span>MIT License &middot; Built with <a href="https://www.rust-lang.org">Rust</a></span>
+    <span><a href="https://github.com/Harsh-2002/MD">Source on GitHub</a></span>
 </footer>
+
+<a href="#top" class="back-to-top">Back to top</a>
 
 </article>
 
 <script>
-// === Theme toggle ===
 (function() {
-    const toggle = document.getElementById('theme-toggle');
-    const html = document.documentElement;
-
-    function getTheme() {
-        return localStorage.getItem('mdx-theme') ||
-            (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    var el = document.getElementById('live-time');
+    function update() {
+        var now = new Date();
+        var date = now.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+        var time = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        el.textContent = date + ' \u00B7 ' + time;
     }
-
-    function setTheme(t) {
-        html.setAttribute('data-theme', t);
-        toggle.innerHTML = t === 'dark' ? '&#9790;' : '&#9728;';
-        localStorage.setItem('mdx-theme', t);
-    }
-
-    setTheme(getTheme());
-
-    toggle.addEventListener('click', function() {
-        setTheme(getTheme() === 'dark' ? 'light' : 'dark');
-    });
+    update();
+    setInterval(update, 1000);
 })();
 
-// === Reading progress bar ===
 (function() {
-    const bar = document.getElementById('progress');
+    var bar = document.getElementById('progress');
     window.addEventListener('scroll', function() {
-        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const pct = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-        bar.style.width = pct + '%';
+        var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        var scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        bar.style.width = (scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0) + '%';
     });
 })();
 
-// === Install tabs ===
 (function() {
-    const tabs = document.querySelectorAll('.install-tab');
-    const panels = document.querySelectorAll('.install-panel');
-
+    var tabs = document.querySelectorAll('.install-tab');
+    var panels = document.querySelectorAll('.install-panel');
     tabs.forEach(function(tab) {
         tab.addEventListener('click', function() {
             tabs.forEach(function(t) { t.classList.remove('active'); });
@@ -654,13 +661,11 @@ mdx export --to txt README.md    <span style="color:var(--fg-muted)"># plain tex
     });
 })();
 
-// === Copy buttons ===
 (function() {
     document.querySelectorAll('.copy-btn').forEach(function(btn) {
         btn.addEventListener('click', function() {
-            const code = btn.closest('pre').querySelector('code');
-            const text = code.textContent;
-            navigator.clipboard.writeText(text).then(function() {
+            var code = btn.closest('pre').querySelector('code');
+            navigator.clipboard.writeText(code.textContent).then(function() {
                 btn.textContent = 'Copied!';
                 setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
             });
