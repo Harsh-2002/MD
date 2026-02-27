@@ -1,6 +1,6 @@
 [package]
 name = "mdx"
-version = "5.1.0"
+version = "5.2.0"
 edition = "2024"
 description = "A terminal markdown renderer with colors, formatting, and diagram support"
 license = "MIT"

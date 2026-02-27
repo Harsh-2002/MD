@@ -22,30 +22,29 @@ use crate::html;
 
 const SYNTAX_THEME: &str = "base16-ocean.dark";
 
-/// Print local network addresses the server is reachable at.
-fn print_network_addresses(port: u16) {
-    let mut addrs: Vec<IpAddr> = Vec::new();
+/// Print the server banner: source description, listening URLs, and hint.
+fn print_serve_banner(port: u16, source: &str) {
+    eprintln!("  Serving {}", source);
 
-    // Always include localhost
-    addrs.push(IpAddr::V4(std::net::Ipv4Addr::LOCALHOST));
-
-    // Detect LAN IPs by probing a UDP socket (doesn't send traffic)
-    if let Ok(sock) = std::net::UdpSocket::bind("0.0.0.0:0") {
-        // Connect to a public address to determine the default route IP
-        if sock.connect("8.8.8.8:80").is_ok()
-            && let Ok(local_addr) = sock.local_addr()
-        {
-            let ip = local_addr.ip();
-            if ip != IpAddr::V4(std::net::Ipv4Addr::LOCALHOST) {
-                addrs.push(ip);
-            }
+    // Detect LAN IP by probing a UDP socket (doesn't send traffic)
+    let lan_ip = if let Ok(sock) = std::net::UdpSocket::bind("0.0.0.0:0") {
+        if sock.connect("8.8.8.8:80").is_ok() {
+            sock.local_addr()
+                .ok()
+                .map(|a| a.ip())
+                .filter(|ip| *ip != IpAddr::V4(std::net::Ipv4Addr::LOCALHOST))
+        } else {
+            None
         }
-    }
+    } else {
+        None
+    };
 
-    eprintln!("  Available on:");
-    for addr in &addrs {
-        eprintln!("    http://{}:{}", addr, port);
+    eprintln!("    Local:   http://127.0.0.1:{}", port);
+    if let Some(ip) = lan_ip {
+        eprintln!("    Network: http://{}:{}", ip, port);
     }
+    eprintln!("  Press Ctrl+C to stop");
 }
 
 struct AppState {
@@ -148,9 +147,7 @@ async fn serve_stdin(args: &ServeArgs) -> Result<(), Box<dyn std::error::Error>>
     let actual_port = listener.local_addr()?.port();
     let url = format!("http://127.0.0.1:{}", actual_port);
 
-    eprintln!("  Serving from stdin at {} (no live reload)", url);
-    print_network_addresses(actual_port);
-    eprintln!("  Press Ctrl+C to stop");
+    print_serve_banner(actual_port, "from stdin (no live reload)");
 
     let _ = open::that(&url);
 
@@ -266,9 +263,7 @@ async fn serve_single_file(args: &ServeArgs, file: &str) -> Result<(), Box<dyn s
     let actual_port = listener.local_addr()?.port();
     let url = format!("http://127.0.0.1:{}", actual_port);
 
-    eprintln!("  Serving {} at {}", filename, url);
-    print_network_addresses(actual_port);
-    eprintln!("  Press Ctrl+C to stop");
+    print_serve_banner(actual_port, &filename);
 
     let _ = open::that(&url);
 
@@ -436,14 +431,10 @@ async fn serve_directory(
     let actual_port = listener.local_addr()?.port();
     let url = format!("http://127.0.0.1:{}", actual_port);
 
-    eprintln!(
-        "  Serving {} files from {} at {}",
-        filenames.len(),
-        dir.display(),
-        url
+    print_serve_banner(
+        actual_port,
+        &format!("{} files from {}", filenames.len(), dir.display()),
     );
-    print_network_addresses(actual_port);
-    eprintln!("  Press Ctrl+C to stop");
 
     let _ = open::that(&url);
 
@@ -604,9 +595,7 @@ async fn serve_multi_files(args: &ServeArgs) -> Result<(), Box<dyn std::error::E
     let actual_port = listener.local_addr()?.port();
     let url = format!("http://127.0.0.1:{}", actual_port);
 
-    eprintln!("  Serving {} files at {}", filenames.len(), url);
-    print_network_addresses(actual_port);
-    eprintln!("  Press Ctrl+C to stop");
+    print_serve_banner(actual_port, &format!("{} files", filenames.len()));
 
     let _ = open::that(&url);
 
