@@ -225,16 +225,18 @@ Built on these libraries:
 | Library | Purpose |
 |---------|---------|
 | [comrak](https://github.com/kivikakk/comrak) | Markdown parsing (CommonMark + GFM) |
-| [syntect](https://github.com/trishume/syntect) | Syntax highlighting |
-| [similar](https://github.com/mitsuhiko/similar) | Text diffing |
-| [clap](https://github.com/clap-rs/clap) | CLI argument parsing |
-| [crossterm](https://github.com/crossterm-rs/crossterm) | Terminal manipulation |
-| [ratatui](https://github.com/ratatui/ratatui) | TUI framework (watch/present modes) |
+| [syntect](https://github.com/trishume/syntect) | Syntax highlighting for code blocks |
+| [clap](https://github.com/clap-rs/clap) | CLI argument parsing and completions |
 | [axum](https://github.com/tokio-rs/axum) | HTTP server (serve mode) |
-| [notify](https://github.com/notify-rs/notify) | File system watcher |
+| [tokio](https://github.com/tokio-rs/tokio) | Async runtime |
+| [notify](https://github.com/notify-rs/notify) | File system watcher (live reload) |
+| [ratatui](https://github.com/ratatui/ratatui) | TUI framework (watch/present modes) |
+| [crossterm](https://github.com/crossterm-rs/crossterm) | Terminal manipulation |
+| [similar](https://github.com/mitsuhiko/similar) | Text diffing |
 | [textwrap](https://github.com/mgeisler/textwrap) | Text wrapping |
-| [image](https://github.com/image-rs/image) | Image decoding |
-| [markdown2pdf](https://github.com/theiskaa/mdPdf) | Native PDF generation |
+| [image](https://github.com/image-rs/image) | Image decoding (PNG, JPEG, GIF, WebP) |
+| [genpdfi](https://docs.rs/genpdfi) | PDF generation |
+| [ureq](https://github.com/algesten/ureq) | HTTP client (URL fetching) |
 
 ## License
 
