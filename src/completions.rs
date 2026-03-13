@@ -50,25 +50,6 @@ pub fn install() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Like `install()` but silently ignores errors (for use after `md update`).
-pub fn install_quiet() {
-    let _ = install_silent();
-}
-
-fn install_silent() -> Result<(), Box<dyn std::error::Error>> {
-    let shell = detect_shell()?;
-
-    match shell.as_str() {
-        "bash" => install_bash()?,
-        "zsh" => install_zsh()?,
-        "fish" => install_fish()?,
-        "powershell" | "pwsh" => install_powershell()?,
-        _ => {}
-    }
-
-    Ok(())
-}
-
 fn detect_shell() -> Result<String, Box<dyn std::error::Error>> {
     #[cfg(windows)]
     {
@@ -172,9 +153,9 @@ fn install_powershell() -> Result<(), Box<dyn std::error::Error>> {
         let script_path = dir.join("mdx.ps1");
         fs::write(&script_path, &completions)?;
 
-        // Add source line to PowerShell profile
-        let profile = PathBuf::from(&local_app_data)
-            .join("Microsoft/Windows/PowerShell/Microsoft.PowerShell_profile.ps1");
+        // Detect the PowerShell profile path dynamically.
+        // Try pwsh (PS 7+) first, fall back to legacy Windows PowerShell 5.1.
+        let profile = detect_ps_profile(&local_app_data);
         if let Some(parent) = profile.parent() {
             fs::create_dir_all(parent)?;
         }
@@ -189,6 +170,30 @@ fn install_powershell() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+/// Detect the correct PowerShell profile path.
+/// Tries `pwsh` (PS 7+) first, falls back to legacy Windows PowerShell 5.1.
+#[cfg(windows)]
+fn detect_ps_profile(local_app_data: &str) -> PathBuf {
+    use std::process::Command;
+
+    // Try PowerShell 7+ (pwsh) — it knows its own profile path
+    if let Ok(output) = Command::new("pwsh")
+        .args(["-NoProfile", "-Command", "echo $PROFILE"])
+        .output()
+    {
+        if output.status.success() {
+            let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if !path.is_empty() {
+                return PathBuf::from(path);
+            }
+        }
+    }
+
+    // Fall back to legacy Windows PowerShell 5.1 profile path
+    PathBuf::from(local_app_data)
+        .join("Microsoft/Windows/PowerShell/Microsoft.PowerShell_profile.ps1")
 }
 
 fn bash_rc(home: &Path) -> PathBuf {

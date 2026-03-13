@@ -46,7 +46,11 @@ fn run_md_raw(args: &[&str], input: &[u8]) -> std::process::Output {
 }
 
 fn write_tmp(name: &str, content: &str) -> std::path::PathBuf {
-    let path = std::env::temp_dir().join(name);
+    use std::sync::atomic::{AtomicU32, Ordering};
+    static COUNTER: AtomicU32 = AtomicU32::new(0);
+    let id = COUNTER.fetch_add(1, Ordering::Relaxed);
+    let unique_name = format!("mdx-test-{}-{}", id, name);
+    let path = std::env::temp_dir().join(unique_name);
     std::fs::write(&path, content).unwrap();
     path
 }

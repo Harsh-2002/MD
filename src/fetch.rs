@@ -1,4 +1,16 @@
+use std::time::Duration;
+
 use crate::cli::FetchArgs;
+
+/// Maximum response body size (50 MB) — prevents OOM on huge pages.
+const MAX_BODY_SIZE: u64 = 50 * 1024 * 1024;
+
+fn http_agent() -> ureq::Agent {
+    let config = ureq::Agent::config_builder()
+        .timeout_global(Some(Duration::from_secs(30)))
+        .build();
+    config.into()
+}
 
 /// Fetches a URL, extracts content as markdown, and returns it.
 /// File output (`-o`) is handled here; terminal rendering is handled by main.
@@ -36,7 +48,9 @@ pub fn run(args: &FetchArgs) -> Result<String, Box<dyn std::error::Error>> {
 }
 
 fn fetch_html(url: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let resp = ureq::get(url)
+    let agent = http_agent();
+    let resp = agent
+        .get(url)
         .header("User-Agent", "mdx-cli (https://github.com/Harsh-2002/MDX)")
         .call()?;
 
@@ -60,7 +74,11 @@ fn fetch_html(url: &str) -> Result<String, Box<dyn std::error::Error>> {
         .into());
     }
 
-    let body = resp.into_body().read_to_string()?;
+    let body = resp
+        .into_body()
+        .with_config()
+        .limit(MAX_BODY_SIZE)
+        .read_to_string()?;
     Ok(body)
 }
 
@@ -154,7 +172,7 @@ fn clean_markdown(input: &str) -> String {
                     // Keep escapes that are meaningful in markdown
                     if matches!(
                         next,
-                        '*' | '_' | '`' | '[' | ']' | '<' | '>' | '~' | '|' | '\\'
+                        '*' | '_' | '`' | '[' | ']' | '<' | '>' | '~' | '|' | '\\' | '#'
                     ) {
                         out.push(c);
                         out.push(next);
@@ -181,20 +199,29 @@ fn clean_markdown(input: &str) -> String {
     result
 }
 
+/// Escape a string value for safe embedding in a YAML double-quoted string.
+fn yaml_escape(s: &str) -> String {
+    s.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
+        .replace('\r', "\\r")
+        .replace('\t', "\\t")
+}
+
 fn format_front_matter(meta: &ArticleMeta, url: &str) -> String {
     let mut fm = String::from("---\n");
     if let Some(ref title) = meta.title {
-        fm.push_str(&format!("title: \"{}\"\n", title.replace('"', "\\\"")));
+        fm.push_str(&format!("title: \"{}\"\n", yaml_escape(title)));
     }
     if let Some(ref byline) = meta.byline {
-        fm.push_str(&format!("author: \"{}\"\n", byline.replace('"', "\\\"")));
+        fm.push_str(&format!("author: \"{}\"\n", yaml_escape(byline)));
     }
     if let Some(ref date) = meta.published_time {
-        fm.push_str(&format!("date: \"{}\"\n", date));
+        fm.push_str(&format!("date: \"{}\"\n", yaml_escape(date)));
     }
-    fm.push_str(&format!("source: \"{}\"\n", url));
+    fm.push_str(&format!("source: \"{}\"\n", yaml_escape(url)));
     if let Some(ref excerpt) = meta.excerpt {
-        fm.push_str(&format!("excerpt: \"{}\"\n", excerpt.replace('"', "\\\"")));
+        fm.push_str(&format!("excerpt: \"{}\"\n", yaml_escape(excerpt)));
     }
     fm.push_str("---\n\n");
     fm

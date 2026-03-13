@@ -59,7 +59,6 @@ fn main() {
         let sa = md::stats::StatsArgs {
             file: stats_args.file.clone(),
         };
-        sa.file.as_ref().map(|_| ()).unwrap_or(());
         md::stats::run(&sa).unwrap_or_else(|e| {
             eprintln!("Error: {}", e);
             std::process::exit(1);
@@ -233,7 +232,11 @@ fn main() {
             #[cfg(feature = "url")]
             {
                 eprintln!("  Fetching {}...", path);
-                match ureq::get(path).call() {
+                let agent: ureq::Agent = ureq::Agent::config_builder()
+                    .timeout_global(Some(std::time::Duration::from_secs(30)))
+                    .build()
+                    .into();
+                match agent.get(path).call() {
                     Ok(resp) => resp.into_body().read_to_string().unwrap_or_else(|e| {
                         eprintln!("Error reading response: {}", e);
                         std::process::exit(1);
@@ -341,9 +344,17 @@ fn render_with_pager<'a>(
         std::process::exit(1);
     }
 
-    // Respect $PAGER env var, fallback to less
-    let pager = std::env::var("PAGER").unwrap_or_else(|_| "less".to_string());
-    let (cmd, default_args): (&str, Vec<&str>) = if pager.contains("less") || pager == "less" {
+    // Respect $PAGER env var; default to less (Unix) or more (Windows)
+    #[cfg(windows)]
+    let default_pager = "more".to_string();
+    #[cfg(not(windows))]
+    let default_pager = "less".to_string();
+    let pager = std::env::var("PAGER").unwrap_or(default_pager);
+    let pager_name = std::path::Path::new(&pager)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("");
+    let (cmd, default_args): (&str, Vec<&str>) = if pager_name == "less" {
         (&pager, vec!["-RFX"])
     } else {
         (&pager, vec![])
@@ -356,19 +367,10 @@ fn render_with_pager<'a>(
     {
         Ok(child) => child,
         Err(_) => {
-            // If custom pager fails, try less
-            match Command::new("less")
-                .arg("-RFX")
-                .stdin(Stdio::piped())
-                .spawn()
-            {
-                Ok(child) => child,
-                Err(e) => {
-                    eprintln!("Error starting pager: {}", e);
-                    let _ = io::stdout().write_all(&buf);
-                    return;
-                }
-            }
+            // If custom pager fails, fall back to stdout
+            eprintln!("Could not start pager '{}', writing to stdout", cmd);
+            let _ = io::stdout().write_all(&buf);
+            return;
         }
     };
 

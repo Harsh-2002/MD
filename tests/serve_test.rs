@@ -81,86 +81,68 @@ fn start_serve(args: &[&str]) -> ServeProcess {
     }
 }
 
+fn http_agent() -> ureq::Agent {
+    let config = ureq::Agent::config_builder()
+        .timeout_global(Some(Duration::from_secs(5)))
+        .build();
+    config.into()
+}
+
 fn http_get(url: &str) -> (u16, String) {
-    // Retry up to 3 times for transient connection failures
+    let agent = http_agent();
     for attempt in 0..3 {
-        let output = Command::new("curl")
-            .args([
-                "-sSL",
-                "--max-time",
-                "5",
-                "-o",
-                "-",
-                "-w",
-                "\n%{http_code}",
-                url,
-            ])
-            .output()
-            .expect("curl failed");
-        let full = String::from_utf8_lossy(&output.stdout).to_string();
-        let (body, code) = full.rsplit_once('\n').unwrap_or((&full, "0"));
-        let status = code.trim().parse::<u16>().unwrap_or(0);
-        if status > 0 || attempt == 2 {
-            return (status, body.to_string());
+        match agent.get(url).call() {
+            Ok(resp) => {
+                let status = resp.status().as_u16();
+                let body = resp.into_body().read_to_string().unwrap_or_default();
+                return (status, body);
+            }
+            Err(ureq::Error::StatusCode(code)) => {
+                let status = code;
+                let body = String::new();
+                return (status, body);
+            }
+            Err(_) if attempt < 2 => {
+                std::thread::sleep(Duration::from_millis(300));
+            }
+            Err(_) => return (0, String::new()),
         }
-        std::thread::sleep(Duration::from_millis(300));
     }
     (0, String::new())
 }
 
 fn http_put(url: &str, body: &str) -> u16 {
+    let agent = http_agent();
     for attempt in 0..3 {
-        let output = Command::new("curl")
-            .args([
-                "-sSL",
-                "--max-time",
-                "5",
-                "-X",
-                "PUT",
-                "-d",
-                body,
-                "-o",
-                "/dev/null",
-                "-w",
-                "%{http_code}",
-                url,
-            ])
-            .output()
-            .expect("curl failed");
-        let out = String::from_utf8_lossy(&output.stdout).to_string();
-        let status = out.trim().parse::<u16>().unwrap_or(0);
-        if status > 0 || attempt == 2 {
-            return status;
+        match agent.put(url).send(body) {
+            Ok(resp) => return resp.status().as_u16(),
+            Err(ureq::Error::StatusCode(code)) => return code,
+            Err(_) if attempt < 2 => {
+                std::thread::sleep(Duration::from_millis(300));
+            }
+            Err(_) => return 0,
         }
-        std::thread::sleep(Duration::from_millis(300));
     }
     0
 }
 
 fn http_post(url: &str, body: &str) -> (u16, String) {
+    let agent = http_agent();
     for attempt in 0..3 {
-        let output = Command::new("curl")
-            .args([
-                "-sS",
-                "--max-time",
-                "5",
-                "-X",
-                "POST",
-                "-d",
-                body,
-                "-w",
-                "\n%{http_code}",
-                url,
-            ])
-            .output()
-            .expect("curl failed");
-        let full = String::from_utf8_lossy(&output.stdout).to_string();
-        let (resp_body, code) = full.rsplit_once('\n').unwrap_or((&full, "0"));
-        let status = code.trim().parse::<u16>().unwrap_or(0);
-        if status > 0 || attempt == 2 {
-            return (status, resp_body.to_string());
+        match agent.post(url).send(body) {
+            Ok(resp) => {
+                let status = resp.status().as_u16();
+                let resp_body = resp.into_body().read_to_string().unwrap_or_default();
+                return (status, resp_body);
+            }
+            Err(ureq::Error::StatusCode(code)) => {
+                return (code, String::new());
+            }
+            Err(_) if attempt < 2 => {
+                std::thread::sleep(Duration::from_millis(300));
+            }
+            Err(_) => return (0, String::new()),
         }
-        std::thread::sleep(Duration::from_millis(300));
     }
     (0, String::new())
 }
@@ -326,15 +308,19 @@ fn test_serve_sse_endpoint() {
     let tmp = write_tmp("md-serve-sse.md", "# SSE Test");
     let srv = start_serve(&[tmp.to_str().unwrap()]);
 
-    // SSE endpoint should respond (connection stays open, but curl with max-time will return)
-    let output = Command::new("curl")
-        .args(["-sS", "--max-time", "1", &srv.url("/events")])
-        .output()
-        .expect("curl failed");
-    // SSE connections return partial content or timeout — either way the endpoint exists
-    // A 404 would give an error body
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(!stderr.contains("404"), "SSE endpoint should exist");
+    // SSE endpoint should respond — use a short timeout since the connection stays open.
+    // We just verify the endpoint exists and doesn't 404.
+    let agent: ureq::Agent = ureq::Agent::config_builder()
+        .timeout_global(Some(Duration::from_secs(1)))
+        .build()
+        .into();
+    match agent.get(&srv.url("/events")).call() {
+        Ok(_) => {} // Connected — endpoint exists
+        Err(ureq::Error::StatusCode(code)) => {
+            assert_ne!(code, 404, "SSE endpoint should exist");
+        }
+        Err(_) => {} // Timeout is expected for SSE
+    }
 
     let _ = std::fs::remove_file(&tmp);
 }

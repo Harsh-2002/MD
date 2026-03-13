@@ -2,6 +2,7 @@
 name = "mdx"
 version = "5.2.0"
 edition = "2024"
+rust-version = "1.88"
 description = "A terminal markdown renderer with colors, formatting, and diagram support"
 license = "MIT"
 repository = "https://github.com/Harsh-2002/MDX"
@@ -48,6 +49,13 @@ watch = ["dep:notify", "dep:ratatui", "dep:ansi-to-tui"]
 serve = ["watch", "dep:axum", "dep:tokio", "dep:open", "dep:tower-http", "dep:tokio-stream", "dep:futures-core"]
 url = ["dep:ureq", "dep:dom_smoothie", "dep:htmd"]
 images = ["dep:image", "dep:base64"]
+
+[dev-dependencies]
+ureq = "3"
+
+[[test]]
+name = "serve_test"
+required-features = ["serve"]
 
 [profile.release]
 opt-level = "z"

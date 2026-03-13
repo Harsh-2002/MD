@@ -46,11 +46,10 @@ main() {
 
     ensure_in_path "$bin_dir"
     setup_completions "${bin_dir}/mdx"
-    reload_shell
 
     echo ""
     echo "  mdx ${version} installed to ${bin_dir}/mdx"
-    echo "  Run 'mdx --help' to get started."
+    echo "  Restart your terminal, then run 'mdx --help' to get started."
     echo ""
 }
 
@@ -79,7 +78,7 @@ detect_platform() {
 
     case "$os" in
         Linux)
-            if ldd --version 2>&1 | grep -qi musl; then
+            if ldd --version 2>&1 | grep -qi musl || [ -f /etc/alpine-release ]; then
                 echo "${arch}-unknown-linux-musl"
             else
                 echo "${arch}-unknown-linux-gnu"
@@ -195,23 +194,6 @@ setup_fish() {
     mkdir -p "$dir"
     rm -f "$dir/md.fish"  # clean up old v4 completion
     "$1" completions fish > "$dir/mdx.fish"
-}
-
-reload_shell() {
-    shell=$(basename "$SHELL")
-    case "$shell" in
-        bash)
-            rc=$(get_bash_rc)
-            # shellcheck disable=SC1090
-            . "$rc" 2>/dev/null || true
-            ;;
-        zsh)
-            . "${HOME}/.zshrc" 2>/dev/null || true
-            ;;
-        fish)
-            # Fish auto-loads completions, no reload needed
-            ;;
-    esac
 }
 
 main

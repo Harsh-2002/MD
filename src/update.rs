@@ -1,7 +1,8 @@
 use std::fs;
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::time::Duration;
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
@@ -9,6 +10,13 @@ use std::os::unix::fs::PermissionsExt;
 const CURRENT_VERSION: &str = env!("CARGO_PKG_VERSION");
 const API_URL: &str = "https://api.github.com/repos/Harsh-2002/MDX/releases/latest";
 const DOWNLOAD_BASE: &str = "https://github.com/Harsh-2002/MDX/releases/download";
+
+fn http_agent() -> ureq::Agent {
+    let config = ureq::Agent::config_builder()
+        .timeout_global(Some(Duration::from_secs(60)))
+        .build();
+    config.into()
+}
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     // Phase 1: Check if update is needed
@@ -49,7 +57,9 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
 
 fn fetch_latest_tag() -> Result<String, Box<dyn std::error::Error>> {
     eprintln!("  Checking for updates...");
-    let resp = ureq::get(API_URL)
+    let agent = http_agent();
+    let resp = agent
+        .get(API_URL)
         .header("User-Agent", "mdx-cli")
         .call()
         .map_err(|e| format!("Failed to check for updates: {}", e))?;
@@ -108,12 +118,14 @@ fn detect_target() -> Result<&'static str, Box<dyn std::error::Error>> {
 
 fn download_and_install(
     url: &str,
-    temp_dir: &PathBuf,
+    temp_dir: &Path,
     tag: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Download tarball
     eprintln!("  Downloading {}...", tag);
-    let resp = ureq::get(url)
+    let agent = http_agent();
+    let resp = agent
+        .get(url)
         .header("User-Agent", "mdx-cli")
         .call()
         .map_err(|e| format!("Failed to download release: {}", e))?;
@@ -125,9 +137,12 @@ fn download_and_install(
     file.flush()?;
     drop(file);
 
-    // Extract
+    // Extract (use -xzf with leading dash for Windows bsdtar compatibility)
+    let tarball_str = tarball_path
+        .to_str()
+        .ok_or("Temp directory path contains invalid characters")?;
     let status = Command::new("tar")
-        .args(["xzf", tarball_path.to_str().unwrap(), "-C"])
+        .args(["-xzf", tarball_str, "-C"])
         .arg(temp_dir)
         .status()
         .map_err(|e| format!("Failed to run tar: {}", e))?;
