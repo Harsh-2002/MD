@@ -273,10 +273,11 @@ Built on these libraries:
 | [similar](https://github.com/mitsuhiko/similar) | Text diffing |
 | [textwrap](https://github.com/mgeisler/textwrap) | Text wrapping |
 | [image](https://github.com/image-rs/image) | Image decoding (PNG, JPEG, GIF, WebP) |
-| [genpdfi](https://docs.rs/genpdfi) | PDF generation |
+| [genpdfi](https://github.com/theiskaa/genpdfi) | PDF generation |
+| [markdown2pdf](https://github.com/theiskaa/markdown2pdf) | Markdown to PDF conversion |
 | [ureq](https://github.com/algesten/ureq) | HTTP client (URL fetching) |
 | [dom_smoothie](https://github.com/niklak/dom_smoothie) | Web article extraction (Readability) |
-| [htmd](https://github.com/nicot/htmd) | HTML to markdown conversion |
+| [htmd](https://github.com/letmutex/htmd) | HTML to markdown conversion |
 
 ## License
 
