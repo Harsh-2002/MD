@@ -852,7 +852,10 @@ fn test_serve_content_negotiation_html_default() {
 #[test]
 fn test_serve_markdown_has_token_header() {
     let _guard = SERVE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
-    let tmp = write_tmp("md-serve-cn-tokens.md", "# Token Test\n\nSome content for tokens.");
+    let tmp = write_tmp(
+        "md-serve-cn-tokens.md",
+        "# Token Test\n\nSome content for tokens.",
+    );
     let srv = start_serve(&[tmp.to_str().unwrap()]);
 
     let (_status, _body, headers) = http_get_with_headers(&srv.url("/"), "text/markdown");
@@ -894,11 +897,7 @@ fn test_serve_multi_content_negotiation() {
     let dir = std::env::temp_dir().join("md-serve-cn-multi");
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
-    std::fs::write(
-        dir.join("agent.md"),
-        "# Agent Page\n\nMulti-file markdown.",
-    )
-    .unwrap();
+    std::fs::write(dir.join("agent.md"), "# Agent Page\n\nMulti-file markdown.").unwrap();
 
     let srv = start_serve(&[dir.to_str().unwrap()]);
 
@@ -909,14 +908,8 @@ fn test_serve_multi_content_negotiation() {
         "Content-Type should be text/markdown, got: {:?}",
         ct
     );
-    assert!(
-        body.contains("# Agent Page"),
-        "Should return raw markdown"
-    );
-    assert!(
-        !body.contains("<!DOCTYPE"),
-        "Should not contain HTML"
-    );
+    assert!(body.contains("# Agent Page"), "Should return raw markdown");
+    assert!(!body.contains("<!DOCTYPE"), "Should not contain HTML");
 
     let _ = std::fs::remove_dir_all(&dir);
 }

@@ -49,8 +49,7 @@ pub fn run(args: &FetchArgs) -> Result<String, Box<dyn std::error::Error>> {
             ..
         } => {
             eprintln!("  Server provided markdown directly");
-            let token_count = server_tokens
-                .unwrap_or_else(|| crate::estimate_tokens(&body));
+            let token_count = server_tokens.unwrap_or_else(|| crate::estimate_tokens(&body));
             let meta = extract_front_matter_meta(&body);
             (body, meta, token_count)
         }
@@ -77,7 +76,11 @@ pub fn run(args: &FetchArgs) -> Result<String, Box<dyn std::error::Error>> {
         if let Some(ref m) = meta {
             output.push_str(&format_front_matter(m, &args.url, token_arg));
         } else {
-            output.push_str(&format_front_matter(&ArticleMeta::default(), &args.url, token_arg));
+            output.push_str(&format_front_matter(
+                &ArticleMeta::default(),
+                &args.url,
+                token_arg,
+            ));
         }
     }
 
@@ -161,8 +164,7 @@ fn check_content_signal(header: Option<&str>) {
     for part in value.split(',') {
         let part = part.trim();
         if let Some((key, val)) = part.split_once('=') {
-            if key.trim().eq_ignore_ascii_case("ai-input")
-                && val.trim().eq_ignore_ascii_case("no")
+            if key.trim().eq_ignore_ascii_case("ai-input") && val.trim().eq_ignore_ascii_case("no")
             {
                 eprintln!("  Warning: site signals ai-input=no via Content-Signal header");
             }
