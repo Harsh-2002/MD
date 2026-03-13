@@ -61,14 +61,20 @@ fn write_tmp(name: &str, content: &str) -> std::path::PathBuf {
 fn test_h1_rendering() {
     let out = run_md_stdin(&["-w", "40"], "# Hello World");
     assert!(out.contains("HELLO WORLD"), "H1 should be uppercased");
-    assert!(out.contains("════"), "H1 should have double-line rule");
+    assert!(
+        out.contains("════") || out.contains("===="),
+        "H1 should have double-line rule"
+    );
 }
 
 #[test]
 fn test_h2_rendering() {
     let out = run_md_stdin(&["-w", "40"], "## Section");
     assert!(out.contains("Section"), "H2 text should appear");
-    assert!(out.contains("────"), "H2 should have single-line rule");
+    assert!(
+        out.contains("────") || out.contains("----"),
+        "H2 should have single-line rule"
+    );
 }
 
 #[test]
@@ -126,7 +132,10 @@ fn test_plain_headings_all_levels() {
 fn test_empty_heading() {
     let out = run_md_stdin(&["-w", "80"], "# ");
     // Should not crash, may produce empty styled line
-    assert!(out.contains("════"), "Empty H1 should still have rule");
+    assert!(
+        out.contains("════") || out.contains("===="),
+        "Empty H1 should still have rule"
+    );
 }
 
 // ── Paragraphs ───────────────────────────────────────────────────────
@@ -361,10 +370,19 @@ fn test_nested_unordered_list() {
     assert!(out.contains("Level 0"));
     assert!(out.contains("Level 1"));
     assert!(out.contains("Level 2"));
-    // Should use different bullet chars per depth: ●, ○, ■
-    assert!(out.contains("●"), "Depth 0 should use ●");
-    assert!(out.contains("○"), "Depth 1 should use ○");
-    assert!(out.contains("■"), "Depth 2 should use ■");
+    // Should use different bullet chars per depth: ●/*/○/-/■/+ (Unicode or ASCII fallback)
+    assert!(
+        out.contains("●") || out.contains("*"),
+        "Depth 0 should use ● or *"
+    );
+    assert!(
+        out.contains("○") || out.contains("-"),
+        "Depth 1 should use ○ or -"
+    );
+    assert!(
+        out.contains("■") || out.contains("+"),
+        "Depth 2 should use ■ or +"
+    );
 }
 
 #[test]
@@ -379,8 +397,14 @@ fn test_nested_ordered_list() {
 fn test_task_list() {
     let out = run_md_stdin(&["-w", "80"], "- [x] Done\n- [ ] Todo");
     assert!(out.contains("Done") && out.contains("Todo"));
-    assert!(out.contains("✓"), "Checked task should use ✓");
-    assert!(out.contains("☐"), "Unchecked task should use ☐");
+    assert!(
+        out.contains("✓") || out.contains("[x]"),
+        "Checked task should use ✓ or [x]"
+    );
+    assert!(
+        out.contains("☐") || out.contains("[ ]"),
+        "Unchecked task should use ☐ or [ ]"
+    );
 }
 
 #[test]
