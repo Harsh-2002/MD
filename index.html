@@ -4,18 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>mdx — Markdown toolchain for the terminal</title>
-<meta name="description" content="A fast, single-binary markdown toolchain built in Rust. Render in the terminal, preview in the browser, fetch web pages as markdown, format, lint, diff, export to HTML/PDF, and publish static sites.">
+<meta name="description" content="A fast, single-binary markdown toolchain built in Rust. Render in the terminal, preview in the browser, fetch web pages, search, format, lint, diff, export to HTML/PDF/EPUB, and publish static sites.">
 <meta name="theme-color" content="#1e1e1e" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#faf8f5" media="(prefers-color-scheme: light)">
 <link rel="canonical" href="https://harsh-2002.github.io/mdx/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="mdx — Markdown toolchain for the terminal">
-<meta property="og:description" content="A fast, single-binary markdown toolchain built in Rust. Render in the terminal, preview in the browser, fetch web pages as markdown, format, lint, diff, export to HTML/PDF, and publish static sites.">
+<meta property="og:description" content="A fast, single-binary markdown toolchain built in Rust. Render in the terminal, preview in the browser, fetch web pages, search, format, lint, diff, export to HTML/PDF/EPUB, and publish static sites.">
 <meta property="og:url" content="https://harsh-2002.github.io/mdx/">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="mdx — Markdown toolchain for the terminal">
-<meta name="twitter:description" content="A fast, single-binary markdown toolchain built in Rust. Render in the terminal, preview in the browser, fetch web pages as markdown, format, lint, diff, export to HTML/PDF, and publish static sites.">
-<meta name="keywords" content="markdown, terminal, cli, rust, renderer, formatter, linter, live preview, static site generator, mdx">
+<meta name="twitter:description" content="A fast, single-binary markdown toolchain built in Rust. Render in the terminal, preview in the browser, fetch web pages, search, format, lint, diff, export to HTML/PDF/EPUB, and publish static sites.">
+<meta name="keywords" content="markdown, terminal, cli, rust, renderer, formatter, linter, live preview, static site generator, epub, full-text search, mdx">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>M</text></svg>">
 <script type="application/ld+json">
 {
@@ -410,7 +410,7 @@ body, .article, pre, .tool-card, th, tr, .install-tab, code {
 
 <!-- ===== Header ===== -->
 <h1><code style="background:none;padding:0;font-size:1em;">mdx</code></h1>
-<p class="tagline">A fast, single-binary markdown toolchain built in Rust. Render in the terminal with syntax highlighting, preview in the browser with live reload, fetch web pages as markdown, format, lint, diff, export, and publish &mdash; all from one command.</p>
+<p class="tagline">A fast, single-binary markdown toolchain built in Rust. Render in the terminal with syntax highlighting, preview in the browser with live reload, search, fetch web pages, format, lint, diff, export to HTML/PDF/EPUB, and publish &mdash; all from one command.</p>
 <p class="byline">By Anurag Vishwakarma &middot; <span id="live-time"></span></p>
 
 <!-- ===== Install ===== -->
@@ -469,7 +469,9 @@ sudo mv mdx /usr/local/bin/</code><button class="copy-btn" aria-label="Copy">Cop
 mdx README.md --pager                  <span style="color:var(--fg-muted)"># pipe through less</span>
 mdx serve file.md                      <span style="color:var(--fg-muted)"># live preview in browser</span>
 mdx serve ./notes/                     <span style="color:var(--fg-muted)"># serve a directory of notes</span>
+mdx search "query" ./docs/             <span style="color:var(--fg-muted)"># full-text search across files</span>
 mdx fetch https://example.com          <span style="color:var(--fg-muted)"># fetch web page as markdown</span>
+mdx export --to epub file.md           <span style="color:var(--fg-muted)"># export to EPUB e-book</span>
 mdx update                             <span style="color:var(--fg-muted)"># self-update to latest version</span>
 cat README.md | mdx                    <span style="color:var(--fg-muted)"># read from stdin</span>
 mdx https://example.com/doc.md         <span style="color:var(--fg-muted)"># render from URL</span></code><button class="copy-btn" aria-label="Copy">Copy</button></pre>
@@ -491,6 +493,8 @@ mdx https://example.com/doc.md         <span style="color:var(--fg-muted)"># ren
     <li><strong>Search &amp; replace</strong> &mdash; find and replace text in the editor with regex support</li>
     <li><strong>Image upload</strong> &mdash; drag and drop or paste images into the editor</li>
     <li><strong>Print / PDF</strong> &mdash; native PDF export, plus browser print with clean CSS</li>
+    <li><strong>EPUB export</strong> &mdash; <code>mdx export --to epub</code> for Apple Books, Kobo, Calibre, and other e-readers</li>
+    <li><strong>Full-text search</strong> &mdash; <code>mdx search</code> with BM25 ranking, tag filtering, and parallel file parsing</li>
     <li><strong>Dark/light theme</strong> &mdash; toggle with button or <kbd>t</kbd>, persisted across sessions</li>
     <li><strong>Slide presentation</strong> &mdash; <code>mdx present</code> turns <code>---</code> separators into terminal slides</li>
     <li><strong>ToC generation</strong> &mdash; <code>mdx toc</code> extracts headings with depth control</li>
@@ -560,10 +564,21 @@ mdx diff - new.md                <span style="color:var(--fg-muted)"># read firs
 </div>
 
 <div class="tool-card">
+    <h3><code>mdx search</code> &mdash; Full-text search</h3>
+    <p>BM25-ranked search across markdown files. Headings are weighted higher than body text, body higher than code. Files are parsed in parallel. Automatically skips <code>.git</code>, <code>node_modules</code>, <code>target</code>, and other non-content directories.</p>
+<pre><span class="code-lang">bash</span><code>mdx search "rust async" .            <span style="color:var(--fg-muted)"># search current directory</span>
+mdx search "query" docs/              <span style="color:var(--fg-muted)"># search recursively</span>
+mdx search --tag rust "ownership"    <span style="color:var(--fg-muted)"># filter by front matter tag</span>
+mdx search -n 5 "error" .            <span style="color:var(--fg-muted)"># top 5 results</span>
+mdx search -l "query" .              <span style="color:var(--fg-muted)"># list matching file paths only</span></code><button class="copy-btn" aria-label="Copy">Copy</button></pre>
+</div>
+
+<div class="tool-card">
     <h3><code>mdx export</code> &mdash; Format conversion</h3>
-    <p>Export markdown to standalone HTML, PDF, JSON AST, or plain text.</p>
+    <p>Export markdown to standalone HTML, PDF, EPUB, JSON AST, or plain text. EPUB embeds local images and maps front matter to metadata.</p>
 <pre><span class="code-lang">bash</span><code>mdx export --to html README.md   <span style="color:var(--fg-muted)"># standalone HTML page</span>
 mdx export --to pdf README.md    <span style="color:var(--fg-muted)"># PDF (native, no browser needed)</span>
+mdx export --to epub README.md   <span style="color:var(--fg-muted)"># EPUB e-book</span>
 mdx export --to json README.md   <span style="color:var(--fg-muted)"># AST as JSON (for tooling)</span>
 mdx export --to txt README.md    <span style="color:var(--fg-muted)"># plain text (strip formatting)</span></code><button class="copy-btn" aria-label="Copy">Copy</button></pre>
 </div>
@@ -588,6 +603,18 @@ mdx completions bash                 <span style="color:var(--fg-muted)"># print
 mdx completions zsh                  <span style="color:var(--fg-muted)"># print zsh completions</span>
 mdx completions fish                 <span style="color:var(--fg-muted)"># print fish completions</span>
 mdx completions powershell           <span style="color:var(--fg-muted)"># print PowerShell completions</span></code><button class="copy-btn" aria-label="Copy">Copy</button></pre>
+</div>
+
+<div class="tool-card">
+    <h3><code>mdx present</code> &mdash; Slide presentation</h3>
+    <p>Present markdown as slides in the terminal. Splits content on <code>---</code> separators.</p>
+<pre><span class="code-lang">bash</span><code>mdx present slides.md</code><button class="copy-btn" aria-label="Copy">Copy</button></pre>
+</div>
+
+<div class="tool-card">
+    <h3><code>mdx watch</code> &mdash; Watch mode</h3>
+    <p>Re-renders markdown in the terminal whenever the file changes.</p>
+<pre><span class="code-lang">bash</span><code>mdx watch file.md</code><button class="copy-btn" aria-label="Copy">Copy</button></pre>
 </div>
 
 <!-- ===== Serve Mode ===== -->
@@ -631,7 +658,7 @@ mdx completions powershell           <span style="color:var(--fg-muted)"># print
       |
       |-->  HTML renderer  -->  axum server  -->  <span class="hl">browser</span> (live reload via SSE)
       |
-      '-->  CLI tools (<span class="hl">stats, fmt, lint, diff, export, fetch, publish</span>)</code></pre></div>
+      '-->  CLI tools (<span class="hl">stats, toc, fmt, lint, diff, search, export, fetch, publish</span>)</code></pre></div>
 
 <!-- ===== Credits ===== -->
 <h2 id="credits">Credits <a href="#credits" class="anchor" aria-hidden="true">#</a></h2>
@@ -652,10 +679,13 @@ mdx completions powershell           <span style="color:var(--fg-muted)"># print
         <tr><td><a href="https://github.com/ratatui/ratatui">ratatui</a></td><td>TUI framework (watch and present modes)</td></tr>
         <tr><td><a href="https://github.com/crossterm-rs/crossterm">crossterm</a></td><td>Terminal manipulation</td></tr>
         <tr><td><a href="https://github.com/mitsuhiko/similar">similar</a></td><td>Text diffing</td></tr>
+        <tr><td><a href="https://github.com/rayon-rs/rayon">rayon</a></td><td>Parallel file parsing (search)</td></tr>
+        <tr><td><a href="https://github.com/BurntSushi/walkdir">walkdir</a></td><td>Recursive directory traversal</td></tr>
         <tr><td><a href="https://github.com/mgeisler/textwrap">textwrap</a></td><td>Text wrapping</td></tr>
         <tr><td><a href="https://github.com/image-rs/image">image</a></td><td>Image decoding (PNG, JPEG, GIF, WebP)</td></tr>
         <tr><td><a href="https://github.com/theiskaa/genpdfi">genpdfi</a></td><td>PDF generation</td></tr>
         <tr><td><a href="https://github.com/theiskaa/markdown2pdf">markdown2pdf</a></td><td>Markdown to PDF conversion</td></tr>
+        <tr><td><a href="https://github.com/lise-henry/epub-builder">epub-builder</a></td><td>EPUB e-book generation</td></tr>
         <tr><td><a href="https://github.com/algesten/ureq">ureq</a></td><td>HTTP client (URL fetching)</td></tr>
         <tr><td><a href="https://github.com/niklak/dom_smoothie">dom_smoothie</a></td><td>Web article extraction (Readability)</td></tr>
         <tr><td><a href="https://github.com/letmutex/htmd">htmd</a></td><td>HTML to markdown conversion</td></tr>
