@@ -1442,11 +1442,19 @@ fn test_export_epub_creates_file() {
         .arg(&tmp)
         .output()
         .expect("Failed to execute mdx");
-    assert!(output.status.success(), "EPUB export should succeed: {}", String::from_utf8_lossy(&output.stderr));
+    assert!(
+        output.status.success(),
+        "EPUB export should succeed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     assert!(epub_path.exists(), "EPUB file should be created");
     let bytes = std::fs::read(&epub_path).unwrap();
     assert!(bytes.len() > 100, "EPUB file should have content");
-    assert_eq!(&bytes[0..2], b"PK", "EPUB should be a zip file (PK magic bytes)");
+    assert_eq!(
+        &bytes[0..2],
+        b"PK",
+        "EPUB should be a zip file (PK magic bytes)"
+    );
     let _ = std::fs::remove_file(&tmp);
     let _ = std::fs::remove_file(&epub_path);
 }
@@ -1461,8 +1469,15 @@ fn test_export_epub_custom_output() {
         .arg(&tmp)
         .output()
         .expect("Failed to execute mdx");
-    assert!(output.status.success(), "EPUB export with -o should succeed: {}", String::from_utf8_lossy(&output.stderr));
-    assert!(custom_output.exists(), "Custom output EPUB file should be created");
+    assert!(
+        output.status.success(),
+        "EPUB export with -o should succeed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        custom_output.exists(),
+        "Custom output EPUB file should be created"
+    );
     let bytes = std::fs::read(&custom_output).unwrap();
     assert_eq!(&bytes[0..2], b"PK", "EPUB should be a zip file");
     let _ = std::fs::remove_file(&tmp);

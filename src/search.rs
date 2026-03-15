@@ -73,10 +73,10 @@ fn collect_files(paths: &[String]) -> Vec<PathBuf> {
                 eprintln!("Warning: '{}' is not a markdown file, skipping", p);
                 continue;
             }
-            if let Some(id) = file_id(path) {
-                if seen.insert(id) {
-                    files.push(path.to_path_buf());
-                }
+            if let Some(id) = file_id(path)
+                && seen.insert(id)
+            {
+                files.push(path.to_path_buf());
             }
         } else if path.is_dir() {
             for entry in walkdir::WalkDir::new(path)
@@ -93,10 +93,10 @@ fn collect_files(paths: &[String]) -> Vec<PathBuf> {
             {
                 match entry {
                     Ok(e) if e.file_type().is_file() && is_markdown_file(e.path()) => {
-                        if let Some(id) = file_id(e.path()) {
-                            if seen.insert(id) {
-                                files.push(e.into_path());
-                            }
+                        if let Some(id) = file_id(e.path())
+                            && seen.insert(id)
+                        {
+                            files.push(e.into_path());
                         }
                     }
                     Err(e) => eprintln!("Warning: {}", e),
@@ -328,11 +328,7 @@ impl SearchIndex {
                 let df = self.doc_freqs.get(qt).copied().unwrap_or([0; NUM_FIELDS]);
 
                 for fi in 0..NUM_FIELDS {
-                    let tf = entry.fields[fi]
-                        .term_freqs
-                        .get(qt)
-                        .copied()
-                        .unwrap_or(0) as f64;
+                    let tf = entry.fields[fi].term_freqs.get(qt).copied().unwrap_or(0) as f64;
 
                     if tf == 0.0 {
                         continue;
@@ -441,8 +437,7 @@ fn generate_snippet(
     // Find which heading this line falls under
     let context_heading = headings
         .iter()
-        .filter(|(_, _, ln)| *ln <= best_line + 1) // sourcepos is 1-indexed
-        .last()
+        .rfind(|(_, _, ln)| *ln <= best_line + 1) // sourcepos is 1-indexed
         .map(|(level, text, _)| format!("{} {}", "#".repeat(*level as usize), text));
 
     Some((snippet, context_heading))
@@ -494,29 +489,22 @@ fn print_results(
 
         // File path (with title if available)
         if let Some(ref title) = doc.title {
-            println!(
-                "{}{}{} ({})",
-                bold_cyan,
-                doc.path.display(),
-                reset,
-                title
-            );
+            println!("{}{}{} ({})", bold_cyan, doc.path.display(), reset, title);
         } else {
             println!("{}{}{}", bold_cyan, doc.path.display(), reset);
         }
 
         // Phase 2: Re-read file only for displayed results (will be in OS page cache)
-        if let Ok(raw_content) = std::fs::read_to_string(&doc.path) {
-            if let Some((snippet, heading)) =
+        if let Ok(raw_content) = std::fs::read_to_string(&doc.path)
+            && let Some((snippet, heading)) =
                 generate_snippet(&raw_content, &doc.headings, query_tokens)
-            {
-                if let Some(ref h) = heading {
-                    println!("  {}{}{}", yellow, h, reset);
-                }
-                // Highlight query tokens in snippet
-                let highlighted = highlight_terms(&snippet, query_tokens, bold_red, reset);
-                println!("  {}", highlighted);
+        {
+            if let Some(ref h) = heading {
+                println!("  {}{}{}", yellow, h, reset);
             }
+            // Highlight query tokens in snippet
+            let highlighted = highlight_terms(&snippet, query_tokens, bold_red, reset);
+            println!("  {}", highlighted);
         }
     }
 }

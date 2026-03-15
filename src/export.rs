@@ -424,7 +424,8 @@ fn process_images(
                         .to_string();
                     let epub_path = format!("images/{}", filename);
                     let mime = mime_from_ext(&src);
-                    let new_tag = tag.replace(&format!("\"{}\"", src), &format!("\"{}\"", epub_path));
+                    let new_tag =
+                        tag.replace(&format!("\"{}\"", src), &format!("\"{}\"", epub_path));
                     result.push_str(&new_tag);
                     images.push((epub_path, mime, bytes));
                     remaining = &remaining[img_start + tag_end + 1..];
